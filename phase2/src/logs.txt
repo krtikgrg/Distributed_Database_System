@@ -1,0 +1,4 @@
+takeInput::inputQuery
+config::debugPrint
+config::debugPrint
+config::exitShell
