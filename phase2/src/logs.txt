@@ -1,4 +1,5 @@
-takeInput::inputQuery
+TakeInput::inputQuery
 config::debugPrint
 config::debugPrint
-config::exitShell
+Query::parse
+TakeInput::inputQuery

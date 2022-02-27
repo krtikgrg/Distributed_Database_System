@@ -1,5 +1,8 @@
 import config
-class logger:
+class Logger:
+    '''
+    Class taking care of logs
+    '''
     def __init__(self):
         self.PATH = config.PATH_TO_LOGS_FILE
         self.fp = open(self.PATH,'w')

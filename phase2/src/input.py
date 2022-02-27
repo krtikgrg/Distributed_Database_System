@@ -1,6 +1,9 @@
 import config
 
-class takeInput:
+class TakeInput:
+    '''
+    Class responsible for taking inputs.
+    '''
     def __init__(self):
         pass
     
@@ -9,7 +12,7 @@ class takeInput:
         Function to take input from terminal. It accepts input until we encounter a semi-colon(;).
         '''
 
-        config.logger.log("takeInput::inputQuery")
+        config.logger.log("TakeInput::inputQuery")
 
         inputString = ""
         currentLine = ""

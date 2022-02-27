@@ -2,6 +2,7 @@ DEBUG = 0
 PATH_TO_LOGS_FILE = "./logs.txt"
 
 logger = None
+parsedQuery = None
 
 def debugPrint(str):
     '''

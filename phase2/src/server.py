@@ -3,8 +3,9 @@ import sqlparse
 
 import config
 
-from input import takeInput
-from trace import logger
+from input import TakeInput
+from trace import Logger
+from query import Query
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
@@ -15,8 +16,8 @@ elif n == 2:
     if sys.argv[1] == '-d':
         config.DEBUG = 1
 
-toInp = takeInput()
-config.logger = logger()
+toInp = TakeInput()
+config.logger = Logger()
 
 while(True):
     query = toInp.inputQuery()
@@ -31,3 +32,6 @@ while(True):
 
         if sqlParsed == 'EXIT':
             config.exitShell()
+
+        config.parsedQuery = Query()
+        config.parsedQuery.parse(sqlParsed)
