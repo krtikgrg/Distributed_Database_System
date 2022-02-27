@@ -1,0 +1,6 @@
+SELECT column_name(s)       //aggregate operators can be present 
+FROM table_name
+WHERE condition             
+GROUP BY column_name(s)
+HAVING condition            //aggregate operators can be present
+ORDER BY column_name(s);    //aggregate operators can be present

@@ -1,0 +1,3 @@
+sshpass -p "iiit123" scp ~/a.txt user@10.3.5.215:~/Outlaws/
+
+ssh user@10.3.5.215 -p22
