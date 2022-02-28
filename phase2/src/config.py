@@ -3,6 +3,8 @@ PATH_TO_LOGS_FILE = "./logs.txt"
 
 logger = None
 parsedQuery = None
+aggregateOperators = ["AVG","COUNT","MAX","MIN","SUM"]
+arithmeticOperators = ["=","!=","<",">","<=",">="]
 
 def debugPrint(str):
     '''
@@ -22,6 +24,7 @@ def errorPrint(str):
     global logger
     logger.log("config::errorPrint")
     print("ERROR ::",str)
+    exit()
 
 def exitShell():
     '''

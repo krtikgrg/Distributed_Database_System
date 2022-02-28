@@ -16,11 +16,11 @@
 
         FROM t1,t2 , t3 , t4
 
-        WHERE (a == b) or (a!=b) oR (a<b) Or (a>b) 
+        WHERE (a = b) or (a!=b) oR (a<b) Or (a>b) 
  
         GROUP BY c2, c3, c4 , c5 
  
-        HAVING count(c2)>0, Sum(c3) == 5
+        HAVING count(c2)>0, Sum(c3) = 5
     1. kindly ignore the names given to columns /tables , they are used only to represent a general structure.
     1. HAVING clause will always have some aggregate operator on some column.
     1. One can specify an aggregate operator in the columns mentioned after SELECT keyword.

@@ -2,4 +2,9 @@ TakeInput::Constructor
 TakeInput::inputQuery
 config::debugPrint
 config::debugPrint
+Query::Constructor
+Query::parse
+TakeInput::inputQuery
+config::debugPrint
+config::debugPrint
 config::exitShell
