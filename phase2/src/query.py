@@ -7,6 +7,7 @@ class Query:
     HAVING Clause, GROUP BY clause etc. All this data will be stored.
     '''
     def __init__(self):
+        config.logger.log("Query::Constructor")
         pass
 
     def parse(self,query):
@@ -16,7 +17,9 @@ class Query:
         config.logger.log("Query::parse")
 
         parsed = sqlparse.parse(query)[0]
-        tokens = parsed.tokens    
+        print(parsed.tokens)
+        print("TEMP")
+        print(parsed)    
 
         #varables to be parsed
         self.relations = []

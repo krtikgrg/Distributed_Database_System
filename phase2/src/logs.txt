@@ -1,5 +1,5 @@
+TakeInput::Constructor
 TakeInput::inputQuery
 config::debugPrint
 config::debugPrint
-Query::parse
-TakeInput::inputQuery
+config::exitShell

@@ -4,6 +4,7 @@ class Node:
     Class for the node that will be used in tree generation
     '''
     def __init__(self):
+        config.logger.log("Node::SuperConstructor")
         self.parent = None
         self.attributes = {
             "relation":[],
@@ -25,6 +26,7 @@ class ProjectNode(Node):
     Class for the project node that will be used in tree generation
     '''
     def __init__(self,to_be_projected):
+        config.logger.log("ProjectNode::Constructor")
         self.to_be_projected = to_be_projected
         #dictionary
         #{
@@ -47,6 +49,8 @@ class SelectNode(Node):
     Class for the select node that will be used in tree generation
     '''
     def __init__(self,conditions):
+        config.logger.log("SelectNode::Constructor")
+
         self.conditions = conditions 
         #conditions is a dictionary of the type
         #{
@@ -71,6 +75,8 @@ class AggregateNode(Node):
     Class for the aggregate node that will be used in tree generation
     '''
     def __init__(self,group_by_attributes,aggregates):
+        config.logger.log("AggregateNode::Constructor")
+
         self.group_by_attributes = group_by_attributes
         #dictionary
         #{
@@ -107,6 +113,8 @@ class JoinNode(Node):
     Class for the join node that will be used in tree generation
     '''
     def __init__(self,r1_name,r1_attribute,operator,r2_name,r2_attribute):
+        config.logger.log("JoinNode::Constructor")
+
         self.r1 = r1_name
         self.r1_attribute = r1_attribute
         self.operator = operator
@@ -134,6 +142,8 @@ class RelationNode(Node):
     Class for the relation node aka leaf node that will be used in tree generation
     '''
     def __init__(self,name):
+        config.logger.log("RelationNode::Constructor")
+
         self.relation = name
         super().__init__()
 

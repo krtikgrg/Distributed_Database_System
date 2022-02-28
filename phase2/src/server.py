@@ -16,8 +16,8 @@ elif n == 2:
     if sys.argv[1] == '-d':
         config.DEBUG = 1
 
-toInp = TakeInput()
 config.logger = Logger()
+toInp = TakeInput()
 
 while(True):
     query = toInp.inputQuery()
@@ -30,7 +30,7 @@ while(True):
 
         config.debugPrint(sqlParsed)
 
-        if sqlParsed == 'EXIT':
+        if sqlParsed == 'EXIT' or sqlParsed == 'quit':
             config.exitShell()
 
         config.parsedQuery = Query()

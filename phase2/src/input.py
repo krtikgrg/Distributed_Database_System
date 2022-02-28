@@ -5,6 +5,7 @@ class TakeInput:
     Class responsible for taking inputs.
     '''
     def __init__(self):
+        config.logger.log("TakeInput::Constructor")
         pass
     
     def inputQuery(self):
