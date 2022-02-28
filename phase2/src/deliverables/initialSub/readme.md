@@ -26,13 +26,3 @@
     1. One can specify an aggregate operator in the columns mentioned after SELECT keyword.
 1. Aggregate Operators supported are MIN,MAX,AVG,SUM,COUNT
 1. Mathematical Operators supported are =,!=,<,>,<=,>=
-1. Assuming that the conditions given in where and having clause are in CNF
-    1. Further in CNF we assume each condition in conjunction will come in parenthesis like (cond1) AND (cond2)
-    1. Where cond1 will be a union of smaller conditions which will occur without parenthesis like (cond11 OR cond12)
-    1. Above cond11 for where clause is of the form attribute_operator_attribute or attribute_operator_value.
-    1. Since we support having clause to only come with aggregate operators therfore each cond11 in having clause will follow the format AGGREGATE_OPERATOR(attribute)_operator_value
-    1. There should not be any spaces in cond11.
-    1. Example for where clause can be
-        1. (a>b) AND (c=5 OR d=10) AND (e=f)
-    1. Example for having clause can be
-        1. (count(a)>10 OR count(b)>5) AND (sum(c)=5 OR max(d)<10)

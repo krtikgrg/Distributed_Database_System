@@ -4,7 +4,7 @@ WHERE condition
 GROUP BY column_name(s)
 HAVING condition            //aggregate operators can be present
 
-SELECT col1, col2 , col3 ,col4,col5 FROM t1,t2 , t3 , t4  WHERE (a == b) or (a!=b) oR (a<b) Or (a<b aNd a>b) GROUP BY c2, c3, c4 , c5 HAVING (count(c2)>0 OR Sum(c3) == 5)
+SELECT col1, col2 , col3 ,col4,col5 FROM t1,t2 , t3 , t4  WHERE (a=b) aNd (a!=b) and (a<b) AND (a<b OR a>b) AND (c<5) AND (d<5 OR e>10 OR f>=15) GROUP BY c2, c3, c4 , c5 HAVING (count(c2)>0 OR Sum(c3)=5) AND (MIN(c5)>10);
 
 
 
@@ -17,14 +17,19 @@ FROM t1,
      t2,
      t3,
      t4
-WHERE (a == b)
-  OR (a!=b)
-  OR (a<b)
-  OR (a<b
-      AND a>b)
+WHERE (a=b)
+  AND (a!=b)
+  AND (a<b)
+  AND (a<b
+       OR a>b)
+  AND (c<5)
+  AND (d<5
+       OR e>10
+       OR f>=15)
 GROUP BY c2,
          c3,
          c4,
          c5
-HAVING count(c2)>0,
-       Sum(c3) == 5
+HAVING (count(c2)>0
+        OR Sum(c3)=5)
+AND (MIN(c5)>10)

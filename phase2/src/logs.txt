@@ -4,6 +4,28 @@ config::debugPrint
 config::debugPrint
 Query::Constructor
 Query::parse
+Parse::Initialising variables to be parsed
+Parse::Processing FROM clause
+Parse::Processing SELECT clause
+Parse::Processing GROUP BY clause
+Parse::Processing HAVING clause
+Parse::Processing WHERE clause
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
+config::debugPrint
 TakeInput::inputQuery
 config::debugPrint
 config::debugPrint

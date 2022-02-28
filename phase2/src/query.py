@@ -64,57 +64,67 @@ class Query:
             query[i] = query[i].split()
 
         #varables to be parsed
-        self.relations = [] #done from "FROM" clause
+        config.logger.log("Parse::Initialising variables to be parsed")
+        self.relations = []
         self.join_conditions = {
             "relation1":[],
             "attribute1":[],
             "operator":[],
             "relation2":[],
             "attribute2":[]
-        } # from where clause
+        }
         self.all_projects = {
             "attribute":[],
             "relation":[],
             "aggregate_operator":[]
-        } #DONE from slect, DONE from group by, from having
+        }
         self.aggregates = {
             "attribute":[],
             "relation":[],
             "operator":[]
-        } #done from select cols, having clause
+        }
         self.group_by = {
             "attribute":[],
             "relation":[]
-        } # DONE from group by
+        }
 
         # to extend support to AND and OR keywords, we will maintain a list of
         # below provided dictionary structure. Where each element in the list
         # will be a separate condition specified by using ORs and all the elements
         # are specified using ANDs. 
-        self.select_conditions = []     # from where clause
+        self.select_conditions = [] 
         selectStructure = {
             "relation":[],
             "attribute":[],
             "operator":[],
             "value":[]
         } 
-        self.having_select = []     # from having clause
+        self.having_select = [] 
+        havingStructure = {
+            "aggregate_operator":[],
+            "relation":[],
+            "attribute":[],
+            "operator":[],
+            "value":[]
+        }
         self.project = {
             "attribute":[],
             "relation":[],
             "aggregate_operator":[]
-        } #partially done from select
-        self.PROJECT_ALL_ATTRIBUTES = None #DONE
-        self.HAVING_CLAUSE_EXIST = None #DONE
-        self.HAVE_AGGREGATES = None #DONE from select, from having
-        self.GROUP_BY_CLAUSE_EXIST = None #DONE
-        self.PART_ONE_PROJECT_ALL = None #DONE
-        self.SELECT_ALL = None #DONE
+        } 
+        self.PROJECT_ALL_ATTRIBUTES = None
+        self.HAVING_CLAUSE_EXIST = None 
+        self.HAVE_AGGREGATES = None
+        self.GROUP_BY_CLAUSE_EXIST = None 
+        self.PART_ONE_PROJECT_ALL = None 
+        self.SELECT_ALL = None 
+        self.HAVE_JOIN = None
 
-        # code to set/extract the above variable from the given query
+        # code to set/extract the above variables from the given query
         
         # First Extracting all the relations that we need
         # extracting from "FROM" Keyword
+        config.logger.log("Parse::Processing FROM clause")
         itr = 0
         while(True):
             if query[itr][0] == "FROM":
@@ -122,7 +132,7 @@ class Query:
             else:
                 itr += 1
         run = 1
-        while(run):
+        while(itr<len(query) and run):
             if query[itr][-1][-1] != ',':
                 run = 0
             else:
@@ -131,6 +141,7 @@ class Query:
             itr += 1
 
         #Now lets extract columns from select keyword
+        config.logger.log("Parse::Processing SELECT clause")
         #iterator variable
         itr = 0
         if query[0][1] == "*":
@@ -139,7 +150,7 @@ class Query:
             self.PROJECT_ALL_ATTRIBUTES = 0
             
             run = 1
-            while(run):
+            while(itr<len(query) and run):
                 if query[itr][-1][-1] != ',':
                     run = 0
                 else:
@@ -152,7 +163,8 @@ class Query:
 
             self.all_projects = copy.deepcopy(self.project)
         
-        #processing group bys first
+        #processing group bys now
+        config.logger.log("Parse::Processing GROUP BY clause")
         itr = 0
         while(itr<len(query)):
             if query[itr][0] == "GROUP":
@@ -164,7 +176,7 @@ class Query:
 
         if self.GROUP_BY_CLAUSE_EXIST == 1:
             run = 1
-            while(run):
+            while(itr<len(query) and run):
                 if query[itr][-1][-1] != ',':
                     run = 0
                 else:
@@ -178,13 +190,9 @@ class Query:
                 self.group_by['relation'].append(rel)
                 itr += 1
 
-        if self.GROUP_BY_CLAUSE_EXIST == 0 and self.HAVING_CLAUSE_EXIST == 0 and self.PROJECT_ALL_ATTRIBUTES == 1:
-            self.PART_ONE_PROJECT_ALL = 1
-        else:
-            self.PART_ONE_PROJECT_ALL = 0
-
-        #processing having and where are same
-        #checking if having clause and where clause exist
+        #processing having and where are kind of similar
+        #checking if having clause exists
+        config.logger.log("Parse::Processing HAVING clause")
         itr = 0
         while(itr<len(query)):
             if query[itr][0] == "HAVING":
@@ -194,6 +202,77 @@ class Query:
         if itr == len(query):
             self.HAVING_CLAUSE_EXIST = 0
 
+        if self.GROUP_BY_CLAUSE_EXIST == 0 and self.HAVING_CLAUSE_EXIST == 0 and self.PROJECT_ALL_ATTRIBUTES == 1:
+            self.PART_ONE_PROJECT_ALL = 1
+        else:
+            self.PART_ONE_PROJECT_ALL = 0
+
+        #if exists then processing it
+        if self.HAVING_CLAUSE_EXIST == 1:
+            #Assuming that having clause will only come with aggregates
+            self.HAVE_AGGREGATES = 1
+            while(itr<len(query)):
+                if (query[itr][0] == "HAVING") or (query[itr][0] == "AND"):
+                    #create new instance
+                    instance = copy.deepcopy(havingStructure)
+                    self.having_select.append(instance)
+                
+                if query[itr][1][0] == '(':
+                    query[itr][1] = query[itr][1][1:]
+                if query[itr][1][-1] == ')':
+                    query[itr][1] = query[itr][1][:-1]
+                
+                value = 0
+                operator = ""
+                toProcess = ""
+                if query[itr][1].find("!=") != -1:
+                    index = query[itr][1].find("!=")
+                    toProcess = query[itr][1][:index]
+                    value = int(query[itr][1][index+2:])
+                    operator = "!="
+                elif query[itr][1].find("<=") != -1:
+                    index = query[itr][1].find("<=")
+                    toProcess = query[itr][1][:index]
+                    value = int(query[itr][1][index+2:])
+                    operator = "<="
+                elif query[itr][1].find(">=") != -1:
+                    index = query[itr][1].find(">=")
+                    toProcess = query[itr][1][:index]
+                    value = int(query[itr][1][index+2:])
+                    operator = ">="
+                elif query[itr][1].find("<") != -1:
+                    index = query[itr][1].find("<")
+                    toProcess = query[itr][1][:index]
+                    value = int(query[itr][1][index+1:])
+                    operator = "<"
+                elif query[itr][1].find(">") != -1:
+                    index = query[itr][1].find(">")
+                    toProcess = query[itr][1][:index]
+                    value = int(query[itr][1][index+1:])
+                    operator = ">"
+                elif query[itr][1].find("=") != -1:
+                    index = query[itr][1].find("=")
+                    toProcess = query[itr][1][:index]
+                    value = int(query[itr][1][index+1:])
+                    operator = "="
+                else:
+                    config.errorPrint("Operator not recognised in HAVING clause")
+                attr,rel,aoper = self.getAttrRelAoper(toProcess)
+
+                self.having_select[-1]['aggregate_operator'].append(aoper)
+                self.having_select[-1]['relation'].append(rel)
+                self.having_select[-1]['attribute'].append(attr)
+                self.having_select[-1]['operator'].append(operator)
+                self.having_select[-1]['value'].append(value)
+
+                self.all_projects["attribute"].append(attr)
+                self.all_projects["relation"].append(rel)
+                self.all_projects['aggregate_operator'].append(aoper)
+
+                itr += 1
+
+        #checking if WHERE clause exists
+        config.logger.log("Parse::Processing WHERE clause")
         itr = 0
         while(itr<len(query)):
             if query[itr][0] == "WHERE":
@@ -202,3 +281,98 @@ class Query:
             itr += 1
         if itr == len(query):
             self.SELECT_ALL = 1
+        
+        #if exists then processing it
+        if self.SELECT_ALL == 0:
+            while(itr<len(query) and ((query[itr][0] == "WHERE") or (query[itr][0] == "AND") or (query[itr][0] == "OR"))):
+                if (query[itr][0] == "WHERE") or (query[itr][0] == "AND"):
+                    #create new instance
+                    instance = copy.deepcopy(selectStructure)
+                    self.select_conditions.append(instance)
+
+                if query[itr][1][0] == '(':
+                    query[itr][1] = query[itr][1][1:]
+                if query[itr][1][-1] == ')':
+                    query[itr][1] = query[itr][1][:-1]
+
+                operator = ""
+                toProcess = ""
+                remaining = ""
+                if query[itr][1].find("!=") != -1:
+                    index = query[itr][1].find("!=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+2:]
+                    operator = "!="
+                elif query[itr][1].find("<=") != -1:
+                    index = query[itr][1].find("<=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+2:]
+                    operator = "<="
+                elif query[itr][1].find(">=") != -1:
+                    index = query[itr][1].find(">=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+2:]
+                    operator = ">="
+                elif query[itr][1].find("<") != -1:
+                    index = query[itr][1].find("<")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+1:]
+                    operator = "<"
+                elif query[itr][1].find(">") != -1:
+                    index = query[itr][1].find(">")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+1:]
+                    operator = ">"
+                elif query[itr][1].find("=") != -1:
+                    index = query[itr][1].find("=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+1:]
+                    operator = "="
+                else:
+                    config.errorPrint("Operator not recognised in HAVING clause")
+                
+                attr,rel,aoper = self.getAttrRelAoper(toProcess)
+                isJoin = 0
+                if remaining.isnumeric():
+                    value = int(remaining)
+                elif remaining.find('\'') != -1:
+                    value = remaining[1:-1]
+                else:
+                    isJoin = 1
+                    self.HAVE_JOIN = 1
+                if isJoin == 0:
+                    self.select_conditions[-1]['relation'].append(rel)
+                    self.select_conditions[-1]['attribute'].append(attr)
+                    self.select_conditions[-1]['operator'].append(operator)
+                    self.select_conditions[-1]['value'].append(value)
+                else:
+                    attr2,rel2,aoper2 = self.getAttrRelAoper(remaining)
+                    self.join_conditions['relation1'].append(rel)
+                    self.join_conditions['relation2'].append(rel2)
+                    self.join_conditions['attribute1'].append(attr)
+                    self.join_conditions['attribute2'].append(attr2)
+                    self.join_conditions['operator'].append(operator)
+
+                itr += 1
+
+        if self.HAVE_AGGREGATES is None:
+            self.HAVE_AGGREGATES = 0
+        if self.HAVE_JOIN is None:
+            self.HAVE_JOIN = 0
+
+        config.debugPrint(self.relations)
+        config.debugPrint(self.join_conditions)
+        config.debugPrint(self.all_projects)
+        config.debugPrint(self.aggregates)
+        config.debugPrint(self.group_by)
+        config.debugPrint(self.select_conditions)
+        config.debugPrint(self.having_select)
+        config.debugPrint(self.project)
+        config.debugPrint("META VARIABLES")
+        config.debugPrint(self.PROJECT_ALL_ATTRIBUTES)
+        config.debugPrint(self.HAVING_CLAUSE_EXIST)
+        config.debugPrint(self.HAVE_AGGREGATES)
+        config.debugPrint(self.GROUP_BY_CLAUSE_EXIST)
+        config.debugPrint(self.PART_ONE_PROJECT_ALL)
+        config.debugPrint(self.SELECT_ALL)
+        config.debugPrint(self.HAVE_JOIN)
