@@ -33,3 +33,5 @@ GROUP BY c2,
 HAVING (count(c2)>0
         OR Sum(c3)=5)
 AND (MIN(c5)>10)
+
+CNF is OR of ANDs, basically OR of minterms and minterms are ANDs for simple predicates => change in query.py
