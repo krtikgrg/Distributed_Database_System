@@ -7,9 +7,33 @@ Query::parse
 Parse::Initialising variables to be parsed
 Parse::Processing FROM clause
 Parse::Processing SELECT clause
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
 Parse::Processing GROUP BY clause
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
 Parse::Processing HAVING clause
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
 Parse::Processing WHERE clause
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
+Query::getAttrRelAoper
 Query::getAttrRelAoper
 Query::getAttrRelAoper
 config::debugPrint

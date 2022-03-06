@@ -33,3 +33,88 @@ GROUP BY c2,
 HAVING (count(c2)>0
         OR Sum(c3)=5)
 AND (MIN(c5)>10)
+
+
+relations ['t1', 't2', 't3', 't4']
+join_conditions {
+     'relation1': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+     'attribute1': ['a', 'a', 'a', 'a', 'a'], 
+     'operator': ['=', '!=', '<', '<', '>'], 
+     'relation2': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+     'attribute2': ['b', 'b', 'b', 'b', 'b']
+}
+all_projects {
+     'attribute': ['col1', 'col2', 'col3', 'col4', 'col5', 'c2', 'c3', 'c4', 'c5', 'c2', 'c3', 'c5'], 
+     'relation': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+     'aggregate_operator': ['', '', '', '', '', '', '', '', '', 'COUNT', 'SUM', 'MIN']
+}
+aggregates {
+     'attribute': ['c2', 'c3', 'c5'], 
+     'relation': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+     'operator': ['COUNT', 'SUM', 'MIN']
+}
+group_by {
+     'attribute': ['c2', 'c3', 'c4', 'c5'], 
+     'relation': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED']
+}
+select_conditions [
+     {
+          'relation': [], 
+          'attribute': [], 
+          'operator': [], 
+          'value': []
+     }, {
+          'relation': [], 
+          'attribute': [], 
+          'operator': [], 
+          'value': []
+     }, {
+          'relation': [], 
+          'attribute': [], 
+          'operator': [], 
+          'value': []
+     }, {
+          'relation': [], 
+          'attribute': [], 
+          'operator': [], 
+          'value': []
+     }, {
+          'relation': ['TO_BE_EXTRACTED'], 
+          'attribute': ['c'], 
+          'operator': ['<'], 
+          'value': [5]
+     }, {
+          'relation': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+          'attribute': ['d', 'e', 'f'], 
+          'operator': ['<', '>', '>='], 
+          'value': [5, 10, 15]
+     }
+]
+having_select [
+     {
+          'aggregate_operator': ['COUNT', 'SUM'], 
+          'relation': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+          'attribute': ['c2', 'c3'], 
+          'operator': ['>', '='], 
+          'value': [0, 5]
+     }, {
+          'aggregate_operator': ['MIN'], 
+          'relation': ['TO_BE_EXTRACTED'], 
+          'attribute': ['c5'], 
+          'operator': ['>'], 
+          'value': [10]
+     }
+]
+project {
+     'attribute': ['col1', 'col2', 'col3', 'col4', 'col5'], 
+     'relation': ['TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED', 'TO_BE_EXTRACTED'], 
+     'aggregate_operator': ['', '', '', '', '']
+}
+META VARIABLES
+PROJECT_ALL_ATTRIBUTES 0
+HAVING_CLAUSE_EXIST 1
+HAVE_AGGREGATES 1
+GROUP_BY_CLAUSE_EXIST 1
+PART_ONE_PROJECT_ALL 0
+SELECT_ALL 0
+HAVE_JOIN 1

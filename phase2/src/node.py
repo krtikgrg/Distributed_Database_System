@@ -28,10 +28,18 @@ class ProjectNode(Node):
     def __init__(self,to_be_projected):
         config.logger.log("ProjectNode::Constructor")
         self.to_be_projected = to_be_projected
+        #For intermediate Project
         #dictionary
         #{
         #   'attribute':[],
         #   'relation':[]
+        #}
+        #for Final/Topmost project in query tree
+        #dictionary
+        #{
+        #   'attribute':[],
+        #   'relation':[]
+        #   'aggregate_operator':[]
         #}
         super().__init__()
 
@@ -52,13 +60,31 @@ class SelectNode(Node):
         config.logger.log("SelectNode::Constructor")
 
         self.conditions = conditions 
-        #conditions is a dictionary of the type
-        #{
+        #conditions is a list of dictionaries of the type
+        #[{
         #   'relation':[],
         #   'attribute':[],
         #   'operator':[],
         #   'value':[] 
-        #}
+        #}]
+        super().__init__()
+
+class HavingNode(Node):
+    '''
+    Class for the Having node that will be used in tree generation
+    '''
+    def __init__(self,conditions):
+        config.logger.log("HavingNode::Constructor")
+
+        self.conditions = conditions 
+        #conditions is a list of dictionaries of the type
+        #[{
+        #   'aggregate_operator':[],
+        #   'relation':[],
+        #   'attribute':[],
+        #   'operator':[],
+        #   'value':[] 
+        #}]
         super().__init__()
 
     def generate_attributes_list(self):
@@ -66,7 +92,7 @@ class SelectNode(Node):
         Function to generate the list of atttributes that will appear on this node 
         '''
 
-        config.logger.log("SelectNode::generate_attributes_list")
+        config.logger.log("HavingNode::generate_attributes_list")
 
         self.attributes = self.children[0].get_attributes()
 
@@ -74,10 +100,17 @@ class AggregateNode(Node):
     '''
     Class for the aggregate node that will be used in tree generation
     '''
-    def __init__(self,group_by_attributes,aggregates):
+    def __init__(self,group_by_attributes,aggregates,group_by_exist):
         config.logger.log("AggregateNode::Constructor")
 
-        self.group_by_attributes = group_by_attributes
+        self.group_by_exist = group_by_exist
+        if self.group_by_exist:
+            self.group_by_attributes = group_by_attributes
+        else:
+            self.group_by_attributes = {
+                'attribute':[],
+                'relation':[]
+            }
         #dictionary
         #{
         #   'attribute':[],
@@ -151,6 +184,7 @@ class UnionNode(Node):
     def generate_attributes_list(self,attribs):
         '''
         Function to generate the list of attributes that will appear in this Union Node
+        Care while passing attribs, it should be a dictionary
         '''
         config.logger.log("UnionNode::generate_attributes_list")
         self.attributes = attribs

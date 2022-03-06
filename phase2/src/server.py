@@ -35,3 +35,5 @@ while(True):
 
         config.parsedQuery = Query()
         config.parsedQuery.parse(sqlParsed)
+
+        config.parsedQuery.generateTree()
