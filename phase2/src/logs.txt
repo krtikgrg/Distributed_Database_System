@@ -10,6 +10,8 @@ Parse::Processing SELECT clause
 Parse::Processing GROUP BY clause
 Parse::Processing HAVING clause
 Parse::Processing WHERE clause
+Query::getAttrRelAoper
+Query::getAttrRelAoper
 config::debugPrint
 config::debugPrint
 config::debugPrint

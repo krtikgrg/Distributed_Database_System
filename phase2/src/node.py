@@ -137,6 +137,25 @@ class JoinNode(Node):
             a1['attribute'].append(a2['attribute'][i])
         self.attributes = a1
 
+class UnionNode(Node):
+    '''
+    Class for representing union, to be used in performing localization(horizonatal fragmentation)
+    '''
+    def __init__(self,attribute,operator,value):
+        config.logger.log("UnionNode::Constructor")
+        self.attribute = attribute
+        self.value = value
+        self.operator = operator
+        super().__init__()
+
+    def generate_attributes_list(self,attribs):
+        '''
+        Function to generate the list of attributes that will appear in this Union Node
+        '''
+        config.logger.log("UnionNode::generate_attributes_list")
+        self.attributes = attribs
+
+
 class RelationNode(Node):
     '''
     Class for the relation node aka leaf node that will be used in tree generation
