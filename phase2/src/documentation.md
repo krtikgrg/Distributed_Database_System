@@ -36,3 +36,6 @@
         1. (a>b) AND (c=5 OR d=10) AND (e=f)
     1. Example for having clause can be
         1. (count(a)>10 OR count(b)>5) AND (sum(c)=5 OR max(d)<10)
+1. For general optimization of the initial query tree without localization
+    1. The select conditions will be like C1 AND C2, where C1 and C2 can themselves be a combination of certain OR conditions.
+    1. If all the conditions involved in OR are only using attributes from only one of the tables/childeren nodes only then it will be moved down the line. Otherwise that select condition will stay where it is.

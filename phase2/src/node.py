@@ -1,4 +1,5 @@
 import config
+import copy
 class Node:
     '''
     Class for the node that will be used in tree generation
@@ -19,7 +20,28 @@ class Node:
 
         config.logger.log("Node::get_attributes")
 
-        return self.attributes
+        return copy.deepcopy(self.attributes)
+
+    def remove_duplicates(self):
+        '''
+        Function to remove duplicate attributes
+        '''
+        config.logger.log("Node::remove_duplicates")
+        attrs = {
+            'relation':[],
+            'attribute':[]
+        }
+
+        mper = {}
+        for i in range(len(self.attributes['relation'])):
+            tp = tuple([self.attributes['relation'][i],self.attributes['attribute'][i]])
+            if tp not in mper:
+                mper[tp] = 0
+                attrs['relation'].append(self.attributes['relation'][i])
+                attrs['attribute'].append(self.attributes['attribute'][i])
+        
+        self.attributes = attrs
+        self.relationAttributeTupleMap = mper
 
 class ProjectNode(Node):
     '''
@@ -51,6 +73,7 @@ class ProjectNode(Node):
         config.logger.log("ProjectNode::generate_attributes_list")
 
         self.attributes = self.to_be_projected
+        self.remove_duplicates()
 
 class SelectNode(Node):
     '''
@@ -59,7 +82,10 @@ class SelectNode(Node):
     def __init__(self,conditions):
         config.logger.log("SelectNode::Constructor")
 
-        self.conditions = conditions 
+        self.conditions = []
+        for condition in conditions:
+            if condition not in self.conditions:
+                self.conditions.append(condition) 
         #conditions is a list of dictionaries of the type
         #[{
         #   'relation':[],
@@ -77,6 +103,31 @@ class SelectNode(Node):
         config.logger.log("SelectNode::generate_attributes_list")
 
         self.attributes = self.children[0].get_attributes()
+        self.remove_duplicates()
+
+    def getConditions(self):
+        '''
+        Function returing the select conditions mentioned in the select node
+        '''
+        config.logger.log("SelectNode::getConditions")
+        return self.conditions
+    
+    def insertCondition(self,condition):
+        '''
+        Function inserting a condition in the conditions of the select node
+        '''
+        config.logger.log("SelectNode::insertCondition")
+        self.conditions.append(condition)
+        return
+    
+    def setConditions(self,conditions):
+        '''
+        Fucntion to set the conditions in the select node
+        '''
+        config.logger.log("SelectNode::setConditions")
+        self.conditions = []
+        for condition in conditions:
+            self.conditions.append(condition)
 
 class HavingNode(Node):
     '''
@@ -104,6 +155,7 @@ class HavingNode(Node):
         config.logger.log("HavingNode::generate_attributes_list")
 
         self.attributes = self.children[0].get_attributes()
+        self.remove_duplicates()
 
 class AggregateNode(Node):
     '''
@@ -149,6 +201,7 @@ class AggregateNode(Node):
             rel.append(self.aggregates['relation'][i])
         self.attributes['attribute'] += attr
         self.attributes['relation'] += rel
+        self.remove_duplicates()
 
 class JoinNode(Node):
     '''
@@ -178,6 +231,7 @@ class JoinNode(Node):
             a1['relation'].append(a2['relation'][i])
             a1['attribute'].append(a2['attribute'][i])
         self.attributes = a1
+        self.remove_duplicates()
 
 class UnionNode(Node):
     '''
@@ -197,6 +251,7 @@ class UnionNode(Node):
         '''
         config.logger.log("UnionNode::generate_attributes_list")
         self.attributes = attribs
+        self.remove_duplicates()
 
 
 class RelationNode(Node):
@@ -224,3 +279,4 @@ class RelationNode(Node):
             'relation':rel
         }
         self.attributes = dic
+        self.remove_duplicates()

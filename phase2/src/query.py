@@ -519,7 +519,25 @@ class Query:
             tpe = str(type(nde))
             tpe = tpe.split()[1]
             tpe = tpe[1:-2]
-            fl.write("type = "+tpe+'<br/>]\n')
+            if nde.parent is not None:
+                fl.write("type = "+tpe+'<br/>'+"Parent = "+str(mp_node_identifier[nde.parent])+'<br/>')
+            else:
+                fl.write("type = "+tpe+'<br/>'+'Root Node'+'<br/>')
+            for x in nde.attributes:
+                fl.write(str(x)+" = ")
+                for temp in nde.attributes[x]:
+                    fl.write(str(temp)+" ")
+                fl.write('<br/>')
+            if tpe == "node.SelectNode":
+                for i in range(len(nde.conditions)):
+                    fl.write('Condition '+ str(i) +' = '+'<br/>')
+                    for x in nde.conditions[i]:
+                        fl.write(str(x)+" = ")
+                        for temp in nde.conditions[i][x]:
+                            fl.write(str(temp)+" ")
+                        fl.write('<br/>')
+            fl.write(']\n')
+
             if nde.parent is not None:
                 ide = mp_node_identifier[nde.parent]
                 fl.write(str(ide)+"-->"+str(cnode)+'\n')
@@ -531,3 +549,124 @@ class Query:
         fl.write('end\n')
         fl.write('```')
         fl.close()
+
+    def generateMapRelationAttribute(self,rels,attrs):
+        '''
+        Function to generate unique relation,attribute pairs
+        out of all the conditions mentioned in ORs for a 
+        particular conditon coming in ANDs in where clause
+        '''
+        config.logger.log("Query::generateMapRelationAttribute")
+        mper = {}
+        for i in range(len(rels)):
+            tp = tuple([rels[i],attrs[i]])
+            if tp not in mper:
+                mper[tp] = 0
+        return mper
+
+    def insertNodeSelectTree(self,condition,curNode,index):
+        '''
+        Function inserting node in between two nodes
+        '''
+
+        config.logger.log('Query::insertNodeSelectTree')
+
+        if len(curNode.parent.children) == 1:
+            if condition in curNode.parent.conditions:
+                return 0
+            else:
+                curNode.parent.insertCondition(condition)
+                return 1
+
+        nuNode = SelectNode([copy.deepcopy(condition)])
+        nuNode.children.append(curNode)
+        nuNode.generate_attributes_list()
+        nuNode.parent = curNode.parent
+        curNode.parent = nuNode
+        nuNode.parent.children[index] = nuNode
+        return 1
+
+    def pushDownSelect(self,curNode,mps,condition,index):
+        '''
+        Actual Function responsible for pushing down the selection
+        '''
+        config.logger.log("Query::pushDownSelect")
+
+        if len(curNode.children) == 0:
+            #encountering a relation node
+            #condition,curNode,index
+            return self.insertNodeSelectTree(condition,curNode,index)
+        elif len(curNode.children) == 2:
+            #encountering a join node
+            lmper = curNode.children[0].relationAttributeTupleMap
+            rmper = curNode.children[1].relationAttributeTupleMap
+
+            #checking for left child
+            ansNode = 0
+            foundAll = 1
+            for x in mps:
+                if x not in lmper:
+                    foundAll = 0
+                    break
+            if foundAll == 0:
+                ansNode += 1
+                foundAll = 1
+                for x in mps:
+                    if x not in rmper:
+                        foundAll = 0
+                        break
+                if foundAll == 0:
+                    return self.insertNodeSelectTree(condition,curNode,index)
+            
+            return self.pushDownSelect(curNode.children[ansNode],mps,condition,ansNode)
+        else:
+            #encountering a previously moved down select node
+            return self.pushDownSelect(curNode.children[0],mps,condition,0)
+
+    def optimizeTreeSelection(self):
+        '''
+        Function to push down selection as descibed in the readme file
+        Acts as a wrapper over the actual function
+        '''
+        config.logger.log("Query::optimizeTreeSelection")
+
+        if self.SELECT_ALL == 1:
+            config.debugPrint("We have to select all so no optimization in selections")
+            return
+        config.debugPrint("Trying to push down selections in the query tree")
+        nde = self.ROOT_TREE_NOT_LOCALIZATION
+        while True:
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+            if tpe == 'node.SelectNode':
+                break
+            nde = nde.children[0]
+        if len(nde.children[0].children) == 0:
+            #encountered the relation node right below the select node
+            #we cannot push selects further down here, so returning in this case
+            return
+
+
+        # On moving a select node down, i can only encounter
+        # either a JOIN NODE, or a SELECT NODE(previously sent down), or a RELATION NODE
+
+        nuConditions = []
+        
+        conditions = nde.getConditions()
+        for i in range(len(conditions)):
+            mps = self.generateMapRelationAttribute(conditions[i]['relation'],conditions[i]['attribute'])
+            done = self.pushDownSelect(nde.children[0],mps,conditions[i],0)
+            if done == 0:
+                nuConditions.append(conditions[i])
+
+        nde.setConditions(nuConditions)
+        
+        
+
+    def optimizeTreeProjection(self):
+        '''
+        Function to push down projections in the query tree so as to optimize the query execution
+        By reducing the intermediate relation sizes
+        '''
+        config.logger.log("Query::optimizeTreeProjection")
