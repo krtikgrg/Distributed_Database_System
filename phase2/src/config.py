@@ -8,19 +8,19 @@ arithmeticOperators = ["=","!=","<",">","<=",">="]
 
 #Assigning some random currently, will be changed later on
 #Will be extracted using sql catalog by means of a utility function
-# relationColumnMap = {
-#     't1' : ['col2','a','c2','c4','c3'],
-#     't2' : ['col1','f','c5'],
-#     't3' : ['col4','col5','d','e'],
-#     't4' : ['b','c','col3']
-# }
 relationColumnMap = {
-    'r1' : ['a','q','r','s','t'],
-    'r2' : ['b','l','m','n','o','p'],
-    'r3' : ['c','k'],
-    'r4' : ['d','i','j'],
-    'r5' : ['e','f','g','h']
+    't1' : ['col2','a','c2','c4','c3'],
+    't2' : ['col1','f','c5'],
+    't3' : ['col4','col5','d','e'],
+    't4' : ['b','c','col3']
 }
+# relationColumnMap = {
+#     'r1' : ['a','q','r','s','t'],
+#     'r2' : ['b','l','m','n','o','p'],
+#     'r3' : ['c','k'],
+#     'r4' : ['d','i','j'],
+#     'r5' : ['e','f','g','h']
+# }
 
 def debugPrint(str):
     '''
