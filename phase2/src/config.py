@@ -6,6 +6,15 @@ parsedQuery = None
 aggregateOperators = ["AVG","COUNT","MAX","MIN","SUM"]
 arithmeticOperators = ["=","!=","<",">","<=",">="]
 
+#Assigning some random currently, will be changed later on
+#Will be extracted using sql catalog by means of a utility function
+relationColumnMap = {
+    't1' : ['col2','a','c2','c4','c3'],
+    't2' : ['col1','f','c5'],
+    't3' : ['col4','col5','d','e'],
+    't4' : ['b','c','col3']
+}
+
 def debugPrint(str):
     '''
     Function that helps to print debug statements when the code is run in debug mode.

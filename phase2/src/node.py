@@ -69,6 +69,15 @@ class SelectNode(Node):
         #}]
         super().__init__()
 
+    def generate_attributes_list(self):
+        '''
+        Function to generate the list of atttributes that will appear on this node 
+        '''
+
+        config.logger.log("SelectNode::generate_attributes_list")
+
+        self.attributes = self.children[0].get_attributes()
+
 class HavingNode(Node):
     '''
     Class for the Having node that will be used in tree generation

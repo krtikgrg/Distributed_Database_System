@@ -37,3 +37,4 @@ while(True):
         config.parsedQuery.parse(sqlParsed)
 
         config.parsedQuery.generateTree()
+        config.parsedQuery.PrintTree('./original.md')
