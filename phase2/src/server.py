@@ -40,5 +40,5 @@ while(True):
         config.parsedQuery.PrintTree('./original.md')
         config.parsedQuery.optimizeTreeSelection()
         config.parsedQuery.PrintTree('./selection_optimized.md')
-        # config.parsedQuery.optimizeTreeProjection() 
-        # config.parsedQuery.PrintTree('./optimized.md') 
+        config.parsedQuery.optimizeTreeProjection() 
+        config.parsedQuery.PrintTree('./optimized.md') 

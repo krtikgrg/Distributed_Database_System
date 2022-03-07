@@ -662,7 +662,118 @@ class Query:
 
         nde.setConditions(nuConditions)
         
+    def insertNodeProjectTree(self,curNode,mps,index):
+        '''
+        Function to insert a project node that has been moved down
+        '''
+
+        config.logger.log("Query::insertNodeProjectTree")
+
+        #CODE to insert project node, yet to be written
+        tpe = str(type(curNode.parent))
+        tpe = tpe.split()[1]
+        tpe = tpe[1:-2]
+        if tpe == 'node.ProjectNode':
+            return 0
+
+        if len(curNode.parent.children) == 1:
+            #above node is a select node
+            curNode = curNode.parent
+            par = curNode.parent
+            ind = 0
+            for i in range(len(par.children)):
+                if par.children[i] == curNode:
+                    break
+            ind = i
+            return self.insertNodeProjectTree(curNode,mps,ind)
         
+        to_be_projected = {
+            'attribute':[],
+            'relation':[]
+        }
+        for tp in mps:
+            to_be_projected['relation'].append(tp[0])
+            to_be_projected['attribute'].append(tp[1])
+        
+        nuNode = ProjectNode(to_be_projected)
+        nuNode.children.append(curNode)
+        nuNode.generate_attributes_list()
+        nuNode.parent = curNode.parent
+        curNode.parent = nuNode
+        nuNode.parent.children[index] = nuNode
+        
+        nde = nuNode.parent
+        while nde is not None:
+            nde.generate_attributes_list()
+            nde = nde.parent
+        return 1
+
+
+    def pushDownProject(self,curNode,mps,index):
+        '''
+        Actual Function responsibe for pushing down the project node
+        '''
+
+        config.logger.log("Query::pushDownProject")
+
+        if len(curNode.children) == 0:
+            #relation node
+            #insert project node
+            return self.insertNodeProjectTree(curNode,mps,index)
+        elif len(curNode.children) == 1:
+            #select node
+            return self.pushDownProject(curNode.children[0],mps,0)
+        else:
+            #join node
+            lmps = copy.deepcopy(mps)
+            tp = tuple([curNode.r1,curNode.r1_attribute])
+            addAboveCurrent = 0
+            if tp not in lmps:
+                addAboveCurrent = 1
+                lmps[tp] = 0
+
+            rmps = copy.deepcopy(mps)
+            tp = tuple([curNode.r2,curNode.r2_attribute])
+            if tp not in rmps:
+                addAboveCurrent = 1
+                rmps[tp] = 0
+
+            lmper = curNode.children[0].relationAttributeTupleMap
+            rmper = curNode.children[1].relationAttributeTupleMap
+
+            nlmps = {}
+            nrmps = {}
+            left = 0
+            right = 0
+            for tp in lmps:
+                if tp in lmper:
+                    nlmps[tp] = 0
+                    left = 1
+            for tp in rmps:
+                if tp in rmper:
+                    nrmps[tp] = 0
+                    right = 1
+            
+            eoleft = 0
+            eoright = 0
+            for tp in lmper:
+                if tp not in nlmps:
+                    eoleft = 1
+                    break
+            for tp in rmper:
+                if tp not in nrmps:
+                    eoright = 1
+                    break
+
+            if left and eoleft:
+                self.pushDownProject(curNode.children[0],nlmps,0)
+            if right and eoright:        
+                self.pushDownProject(curNode.children[1],nrmps,1)
+            if addAboveCurrent:
+                return self.insertNodeProjectTree(curNode,mps,index)
+            return 0
+            # Dict.pop(Key)
+                        
 
     def optimizeTreeProjection(self):
         '''
@@ -670,3 +781,36 @@ class Query:
         By reducing the intermediate relation sizes
         '''
         config.logger.log("Query::optimizeTreeProjection")
+
+        if self.PART_ONE_PROJECT_ALL == 1:
+            config.debugPrint("We have to project all the columns so there cannot be any improvement")
+            return
+        
+        config.debugPrint("Trying to push down projects")
+
+        ctr = 0
+        maxi = 2
+        if self.PROJECT_ALL_ATTRIBUTES != 0:
+            maxi -= 1
+
+        nde = self.ROOT_TREE_NOT_LOCALIZATION
+        while True:
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+            if tpe == 'node.ProjectNode':
+                ctr += 1
+                if ctr == maxi:
+                    break
+            nde = nde.children[0]
+        if len(nde.children[0].children) == 0:
+            #encountered the relation node right below the select node
+            #we cannot push projects further down here, so returning in this case
+            return
+
+        # On moving a project node down, i can only encounter
+        # either a JOIN NODE, or a SELECT NODE(previously sent down), or a RELATION NODE
+
+        mps = self.generateMapRelationAttribute(nde.attributes['relation'],nde.attributes['attribute'])
+
+        self.pushDownProject(nde.children[0],mps,0)
