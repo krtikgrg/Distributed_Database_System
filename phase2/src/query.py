@@ -51,7 +51,7 @@ class Query:
                     rel = x
                     break
             if rel is None:
-                config.errorPrint("No relation contained a specified column "+col)
+                config.errorPrint("No relation contained the specified column "+col)
             attr = col
 
         if haveaggr == 1:
@@ -365,6 +365,10 @@ class Query:
                     self.join_conditions['operator'].append(operator)
 
                 itr += 1
+            
+            if len(self.select_conditions[-1]['relation'])==0:
+                self.SELECT_ALL = 1
+
 
         if self.HAVE_AGGREGATES is None:
             self.HAVE_AGGREGATES = 0
@@ -481,7 +485,7 @@ class Query:
             finalNode = currentNode
 
         #final project aka project node
-        if self.PROJECT_ALL_ATTRIBUTES == 0:
+        if self.PROJECT_ALL_ATTRIBUTES == 0 and (self.HAVING_CLAUSE_EXIST == 1 or self.HAVE_AGGREGATES == 1):
             currentNode = ProjectNode(self.project)
             currentNode.children.append(finalNode)
             currentNode.generate_attributes_list()
@@ -790,8 +794,11 @@ class Query:
 
         ctr = 0
         maxi = 2
-        if self.PROJECT_ALL_ATTRIBUTES != 0:
+        if not(self.PROJECT_ALL_ATTRIBUTES == 0 and (self.HAVING_CLAUSE_EXIST == 1 or self.HAVE_AGGREGATES == 1)):
             maxi -= 1
+
+        # if self.PROJECT_ALL_ATTRIBUTES != 0:
+            # maxi -= 1
 
         nde = self.ROOT_TREE_NOT_LOCALIZATION
         while True:

@@ -122,3 +122,5 @@ t3 => e
 t4 => b
 t4 => c
 t4 => col3
+
+select b,c,d,f,k,o,p,r from r1,r2,r3,r4,r5 where (a=b) AND (b=c) AND (c=d) AND (d=e);
