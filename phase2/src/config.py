@@ -22,6 +22,47 @@ relationColumnMap = {
 #     'r5' : ['e','f','g','h']
 # }
 
+Tables = {
+    'Name':['User','Restaurants','Food_Item','Order','Order_Items'],
+    'Fragmentation_Type':['VF','VF','HF','DHF',None],
+    'Number_Of_Fragmentation':[2,2,3,3,0]
+}
+Columns = {
+    'Table_Name': ['User','User','User','User','User','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Food_Item','Food_Item','Food_Item','Food_Item','Food_Item','Food_Item','Order','Order','Order','Order','Order_Items','Order_Items','Order_Items'],
+    'Column_Name': ['Name','Email','Address','Phone_Number','PK_Custom','Name','Address','Email','Rating','Specialty','Num_Reviews','PK_Custom','Name','Type','Price','Category','FK_Restaurant','PK_Custom','User_ID','Restaurant_ID','Amount','PK_Custom','Order_ID','Item_ID','Quantity']
+}
+Horizontal_Fragments = {
+    'Fragment_Name' : ['Food_Item_Chinese','Food_Item_Indian','Food_Item_Italian'],
+    'Table_Name' : ['Food_Item','Food_Item','Food_Item'],
+    'Attribute' : ['Type','Type','Type'],
+    'Operator' : ['=','=','='],
+    'Val' : ['Chinese','Indian','Italian']
+}
+Vertical_Fragments = {
+    'Fragment_Name' : ['Restaurants_Minimal','Restaurants_Remaining','User_Minimal','User_Remaining'],
+    'Table_Name' : ['Restaurants','Restaurants','User','User']
+}
+VF_Columns = {
+    'Fragment_Name':['Restaurants_Minimal','Restaurants_Minimal','Restaurants_Minimal','Restaurants_Minimal','Restaurants_Remaining','Restaurants_Remaining','Restaurants_Remaining','Restaurants_Remaining','User_Minimal','User_Minimal','User_Minimal','User_Remaining','User_Remaining','User_Remaining'],
+    'Column_Name' : ['Name','Rating','Specialty','PK_Custom','PK_Custom','Address','Email','Num_Reviews','Name','Email','PK_Custom','Address','Phone_Number','PK_Custom']
+}
+Derived_Horizontal_Fragments = {
+    'Table_Name':['Order_Items','Order_Items','Order_Items','Order','Order','Order'],
+    'Fragment_Name':['Order_Items_Chinese','Order_Items_Indian','Order_Items_Italian','User_Restaurant_Order_Amount_Chinese','User_Restaurant_Order_Amount_Indian','User_Restaurant_Order_Amount_Italian'],
+    'Horizontal_Fragment_Name':['Food_Items_Chinese','Food_Items_Indian','Food_Items_Italian','Order_Items_Chinese','Order_Items_Indian','Order_Items_Italian'],
+    'Direct_Fragment':[1,1,1,0,0,0]
+}
+Sites = {
+    'Site' : [1,2,3,4],
+    'User_Name' : ["user","user","user","user"],
+    'Password' : ["iiit123","iiit123","iiit123","iiit123"],
+    'IP_Address' : ["10.3.5.215","10.3.5.214","10.3.5.213","10.3.5.212"]
+}
+Allocation = {
+    'Fragment_Name' : ["Food_Items_Chinese","Food_Items_Indian","Food_Items_Italian","Restaurants_Minimal","Restaurants_Remaining","User_Minimal","User_Remaining","Order_Items_Chinese","Order_Items_Indian","Order_Items_Italian","User_Restaurant_Order_Amount_Chinese","User_Restaurant_Order_Amount_Indian","User_Restaurant_Order_Amount_Italian"],
+    'Site' : [1,2,3,4,4,4,2,1,2,3,1,2,3]
+}
+
 def debugPrint(str):
     '''
     Function that helps to print debug statements when the code is run in debug mode.
