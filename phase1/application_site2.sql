@@ -22,9 +22,9 @@ CREATE TABLE User_Restaurant_Order_Amount_Indian (
     PRIMARY KEY(PK_Custom)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
 
-DROP TABLE IF EXISTS Order_Items;
+DROP TABLE IF EXISTS Order_Items_Indian;
 
-CREATE TABLE Order_Items (
+CREATE TABLE Order_Items_Indian (
     Order_ID VARCHAR(100) NOT NULL,
     Item_ID VARCHAR(100) NOT NULL,
     Quantity INT NOT NULL,

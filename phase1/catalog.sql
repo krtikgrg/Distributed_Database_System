@@ -173,9 +173,9 @@ CREATE TABLE Derived_Horizontal_Fragments (
     Table_Name VARCHAR(20) NOT NULL,
     Fragment_Name VARCHAR(100) NOT NULL,
     Horizontal_Fragment_Name VARCHAR(100) NOT NULL,
-    Intermediate_Fragment VARCHAR(100),
-    PRIMARY KEY(Fragment_Name),
-    FOREIGN KEY (Horizontal_Fragment_Name) REFERENCES Horizontal_Fragments(Fragment_Name) ON DELETE CASCADE ON UPDATE CASCADE
+    Direct_Fragment INT,
+    PRIMARY KEY(Fragment_Name)
+    -- FOREIGN KEY (Horizontal_Fragment_Name) REFERENCES Horizontal_Fragments(Fragment_Name) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
 
 LOCK TABLES Derived_Horizontal_Fragments WRITE;
@@ -185,22 +185,40 @@ INSERT INTO
     Derived_Horizontal_Fragments
 VALUES
     (
+        "Order_Items",
+        "Order_Items_Chinese",
+        "Food_Items_Chinese",
+        1
+    ),
+    (
+        "Order_Items",
+        "Order_Items_Indian",
+        "Food_Items_Indian",
+        1
+    ),
+    (
+        "Order_Items",
+        "Order_Items_Italian",
+        "Food_Items_Italian",
+        1
+    ),
+    (
         "Order",
         "User_Restaurant_Order_Amount_Chinese",
-        "Food_Item_Chinese",
-        "Order_Items"
+        "Order_Items_Chinese",
+        0
     ),
     (
         "Order",
         "User_Restaurant_Order_Amount_Indian",
-        "Food_Item_Indian",
-        "Order_Items"
+        "Order_Items_Indian",
+        0
     ),
     (
         "Order",
         "User_Restaurant_Order_Amount_Italian",
-        "Food_Item_Italian",
-        "Order_Items"
+        "Order_Items_Italian",
+        0
     );
 
 UNLOCK TABLES;
@@ -250,7 +268,9 @@ VALUES
     ("Restaurants_Remaining", 4),
     ("User_Minimal", 4),
     ("User_Remaining", 2),
-    ("Order_Items", 2),
+    ("Order_Items_Chinese", 1),
+    ("Order_Items_Indian", 2),
+    ("Order_Items_Italian", 3),
     ("User_Restaurant_Order_Amount_Chinese", 1),
     ("User_Restaurant_Order_Amount_Indian", 2),
     ("User_Restaurant_Order_Amount_Italian", 3);

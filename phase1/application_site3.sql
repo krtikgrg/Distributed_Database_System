@@ -21,3 +21,12 @@ CREATE TABLE User_Restaurant_Order_Amount_Italian (
     Amount INT NOT NULL,
     PRIMARY KEY(PK_Custom)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
+
+DROP TABLE IF EXISTS Order_Items_Italian;
+
+CREATE TABLE Order_Items_Italian (
+    Order_ID VARCHAR(100) NOT NULL,
+    Item_ID VARCHAR(100) NOT NULL,
+    Quantity INT NOT NULL,
+    PRIMARY KEY(Order_ID,Item_ID)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;
