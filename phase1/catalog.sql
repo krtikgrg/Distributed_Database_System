@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS Tables;
 CREATE TABLE Tables (
     Name VARCHAR(100) NOT NULL,
     Fragmentation_Type VARCHAR(12),
+    Number_Of_Fragments INT,
     PRIMARY KEY(Name)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
 
@@ -20,11 +21,11 @@ LOCK TABLES Tables WRITE;
 INSERT INTO
     Tables
 VALUES
-    ("User", "VF"),
-    ("Restaurants", "VF"),
-    ("Food_Item", "HF"),
-    ("Order", "DHF"),
-    ("Order_Items", NULL);
+    ("User", "VF",2),
+    ("Restaurants", "VF",2),
+    ("Food_Item", "HF",3),
+    ("Order", "DHF",3),
+    ("Order_Items", NULL,0);
 
 UNLOCK TABLES;
 
