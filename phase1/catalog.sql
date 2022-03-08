@@ -75,7 +75,9 @@ DROP TABLE IF EXISTS Horizontal_Fragments;
 CREATE TABLE Horizontal_Fragments (
     Fragment_Name VARCHAR(100) NOT NULL,
     Table_Name VARCHAR(20) NOT NULL,
-    Clause VARCHAR(200) NOT NULL,
+    Attribute VARCHAR(200) NOT NULL,
+    Operator VARCHAR(200) NOT NULL,
+    Val VARCHAR(200) NOT NULL,
     PRIMARY KEY (Fragment_Name),
     FOREIGN KEY (Table_Name) REFERENCES Tables(Name) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
@@ -89,17 +91,23 @@ VALUES
     (
         "Food_Item_Chinese",
         "Food_Item",
-        "Type == Chinese"
+        "Type",
+        "=",
+        "Chinese"
     ),
     (
         "Food_Item_Indian",
         "Food_Item",
-        "Type == Indian"
+        "Type",
+        "=",
+        "Indian"
     ),
     (
         "Food_Item_Italian",
         "Food_Item",
-        "Type == Italian"
+        "Type",
+        "=",
+        "Italian"
     );
 
 UNLOCK TABLES;
@@ -161,9 +169,10 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS Derived_Horizontal_Fragments;
 
 CREATE TABLE Derived_Horizontal_Fragments (
+    Table_Name VARCHAR(20) NOT NULL,
     Fragment_Name VARCHAR(100) NOT NULL,
     Horizontal_Fragment_Name VARCHAR(100) NOT NULL,
-    Relation VARCHAR(100) NOT NULL,
+    Intermediate_Fragment VARCHAR(100),
     PRIMARY KEY(Fragment_Name),
     FOREIGN KEY (Horizontal_Fragment_Name) REFERENCES Horizontal_Fragments(Fragment_Name) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
@@ -175,19 +184,22 @@ INSERT INTO
     Derived_Horizontal_Fragments
 VALUES
     (
+        "Order",
         "User_Restaurant_Order_Amount_Chinese",
         "Food_Item_Chinese",
-        "Order_Items JOIN Food_Item"
+        "Order_Items"
     ),
     (
+        "Order",
         "User_Restaurant_Order_Amount_Indian",
         "Food_Item_Indian",
-        "Order_Items JOIN Food_Item"
+        "Order_Items"
     ),
     (
+        "Order",
         "User_Restaurant_Order_Amount_Italian",
         "Food_Item_Italian",
-        "Order_Items JOIN Food_Item"
+        "Order_Items"
     );
 
 UNLOCK TABLES;
