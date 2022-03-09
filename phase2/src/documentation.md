@@ -39,3 +39,5 @@
 1. For general optimization of the initial query tree without localization
     1. The select conditions will be like C1 AND C2, where C1 and C2 can themselves be a combination of certain OR conditions.
     1. If all the conditions involved in OR are only using attributes from only one of the tables/childeren nodes only then it will be moved down the line. Otherwise that select condition will stay where it is.
+1. Numeric Data-Types are only supposed to be of INT type, float data type is not handled.
+1. Assuming no relation with a composite key will be fragmented.

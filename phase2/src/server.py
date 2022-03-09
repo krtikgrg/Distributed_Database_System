@@ -6,6 +6,7 @@ import config
 from input import TakeInput
 from trace import Logger
 from query import Query
+from preprocess import generateRelationColumnMapFromMetaData
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
@@ -18,6 +19,7 @@ elif n == 2:
 
 config.logger = Logger()
 toInp = TakeInput()
+generateRelationColumnMapFromMetaData()
 
 while(True):
     query = toInp.inputQuery()
@@ -42,3 +44,5 @@ while(True):
         config.parsedQuery.PrintTree('./selection_optimized.md')
         config.parsedQuery.optimizeTreeProjection() 
         config.parsedQuery.PrintTree('./optimized.md') 
+        config.parsedQuery.replaceRelationsWithFragments()
+        config.parsedQuery.PrintTree('./fragmented.md')

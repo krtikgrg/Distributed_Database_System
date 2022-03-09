@@ -124,3 +124,11 @@ t4 => c
 t4 => col3
 
 select b,c,d,f,k,o,p,r from r1,r2,r3,r4,r5 where (a=b) AND (b=c) AND (c=d) AND (d=e);
+
+
+For union and leaf nodes, the name of relations are fucked up (not that much)
+So when generating the queries , only use attribute names not relation names
+
+even when pushing down the selects and joins in union node, only use attribute names
+
+Update Catalog on sites

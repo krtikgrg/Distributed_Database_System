@@ -2,7 +2,7 @@ import config
 import sqlparse
 import copy
 from sql_metadata import Parser
-from node import Node,ProjectNode,SelectNode,AggregateNode,JoinNode,UnionNode,RelationNode,HavingNode
+from node import Node,ProjectNode,SelectNode,AggregateNode,JoinNode,UnionNode,RelationNode,HavingNode,HFNode,VFNode
 class Query:
     '''
     An SQL query will be parsed further here, and broken to multiple parts like
@@ -340,7 +340,7 @@ class Query:
                     remaining = query[itr][1][index+1:]
                     operator = "="
                 else:
-                    config.errorPrint("Operator not recognised in HAVING clause")
+                    config.errorPrint("Operator not recognised in WHERE clause")
                 
                 attr,rel,aoper = self.getAttrRelAoper(toProcess)
                 isJoin = 0
@@ -527,11 +527,13 @@ class Query:
                 fl.write("type = "+tpe+'<br/>'+"Parent = "+str(mp_node_identifier[nde.parent])+'<br/>')
             else:
                 fl.write("type = "+tpe+'<br/>'+'Root Node'+'<br/>')
+            fl.write('<br/>')
             for x in nde.attributes:
                 fl.write(str(x)+" = ")
                 for temp in nde.attributes[x]:
                     fl.write(str(temp)+" ")
                 fl.write('<br/>')
+            fl.write('<br/>')
             if tpe == "node.SelectNode":
                 for i in range(len(nde.conditions)):
                     fl.write('Condition '+ str(i) +' = '+'<br/>')
@@ -540,6 +542,13 @@ class Query:
                         for temp in nde.conditions[i][x]:
                             fl.write(str(temp)+" ")
                         fl.write('<br/>')
+            fl.write('<br/>')
+            if tpe == "node.HFNode":
+                fl.write("Horizontally Fragmented Condition = <br/>")
+                fl.write("Attribute = "+str(nde.attr)+"<br/>")
+                fl.write("Operator = "+str(nde.operator)+"<br/>")
+                fl.write("Value = "+str(nde.value)+"<br/>")
+            fl.write('<br/>')
             fl.write(']\n')
 
             if nde.parent is not None:
@@ -821,3 +830,171 @@ class Query:
         mps = self.generateMapRelationAttribute(nde.attributes['relation'],nde.attributes['attribute'])
 
         self.pushDownProject(nde.children[0],mps,0)
+    
+    def replaceRelationsWithFragments(self):
+        '''
+        Function to incorporate fragments in the query tree, and rewrite the query tree accordingly
+        Basically Data Localization
+        '''
+
+        config.logger.log("Query::replaceRelationsWithFragments")
+
+        q = []
+        relNodes = []
+        root = self.ROOT_TREE_NOT_LOCALIZATION
+        q.append(root)
+        while len(q)!=0:
+            nde = q.pop(0)
+
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+
+            if tpe == "node.RelationNode":
+                relNodes.append(nde)
+            
+            for x in nde.children:
+                q.append(x)
+        
+        for relNode in relNodes:
+            name = relNode.relation
+            if name in config.Tables['Name']:
+                indx = config.Tables['Name'].index(name)
+                ftype = config.Tables['Fragmentation_Type'][indx]
+                # numFrags = config.Tables['Number_Of_Fragments'][indx]
+                if ftype is not None:
+                    if ftype == "HF":
+                        leaveNodes = []
+                        for i in range(len(config.Horizontal_Fragments['Table_Name'])):
+                            if config.Horizontal_Fragments['Table_Name'][i] == name:
+                                curNode = HFNode(config.Horizontal_Fragments['Fragment_Name'][i],config.Horizontal_Fragments['Attribute'][i],config.Horizontal_Fragments['Operator'][i],config.Horizontal_Fragments['Val'][i],name)
+                                curNode.generate_attributes_list(relNode.get_attributes())
+                                curNode.setUseOnlyAttributes()
+                                leaveNodes.append(curNode)
+
+                        child = UnionNode()
+                        child.children.append(leaveNodes[0])
+                        child.setUseOnlyAttributes()
+                        leaveNodes[0].parent = child
+
+                        for i in range(1,len(leaveNodes)-1):
+                            child.children.append(leaveNodes[i])
+                            leaveNodes[i].parent = child
+                            child.generate_attributes_list()
+
+                            nuChild = UnionNode()
+                            nuChild.children.append(child)
+                            nuChild.setUseOnlyAttributes()
+                            child.parent = nuChild
+                            child = nuChild
+                        
+                        child.children.append(leaveNodes[-1])
+                        leaveNodes[-1].parent = child
+                        child.generate_attributes_list()
+
+                        par = relNode.parent
+                        if par is not None:
+                            ndIndx = 0
+                            for i in range(len(par.children)):
+                                if par.children[i] == relNode:
+                                    ndIndx = i
+                                    break
+                            par.children[ndIndx] = child
+                            child.parent = par
+                        else:
+                            self.ROOT_TREE_NOT_LOCALIZATION = child
+                    elif ftype == "VF":
+                        leaveNodes = []
+                        for idx in range(len(config.Vertical_Fragments['Table_Name'])):
+                            if config.Vertical_Fragments['Table_Name'][idx] == name:
+                                fragName = config.Vertical_Fragments['Fragment_Name'][idx]
+                                cols = []
+                                for idx2 in range(len(config.VF_Columns['Fragment_Name'])):
+                                    if config.VF_Columns["Fragment_Name"][idx2] == fragName:
+                                        cols.append(config.VF_Columns['Column_Name'][idx2])
+                                curNode = VFNode(fragName,name)
+                                curNode.generate_attributes_list(copy.deepcopy(cols))
+                                curNode.setUseOnlyAttributes()
+                                leaveNodes.append(curNode)
+                        
+                        child = JoinNode(name,config.TableKeys[name],"=",name,config.TableKeys[name])
+                        child.children.append(leaveNodes[0])
+                        child.setUseOnlyAttributes()
+                        leaveNodes[0].parent = child
+
+                        for idx in range(1,len(leaveNodes)-1):
+                            child.children.append(leaveNodes[i])
+                            leaveNodes[i].parent = child
+                            child.generate_attributes_list()
+
+                            nuChild = JoinNode(name,config.TableKeys[name],"=",name,config.TableKeys[name])
+                            nuChild.children.append(child)
+                            nuChild.setUseOnlyAttributes()
+                            child.parent = nuChild
+                            child = nuChild
+
+                        child.children.append(leaveNodes[-1])
+                        leaveNodes[-1].parent = child
+                        child.generate_attributes_list()
+
+                        par = relNode.parent
+                        if par is not None:
+                            ndIndx = 0
+                            for idx in range(len(par.children)):
+                                if par.children[idx] == relNode:
+                                    ndIndx = idx
+                                    break
+                            par.children[ndIndx] = child
+                            child.parent = par
+                        else:
+                            self.ROOT_TREE_NOT_LOCALIZATION = child
+                    else:
+                        leaveNodes = []
+                        for i in range(len(config.Derived_Horizontal_Fragments['Table_Name'])):
+                            if config.Derived_Horizontal_Fragments['Table_Name'][i] == name:
+                                idx = i
+                                while config.Derived_Horizontal_Fragments['Direct_Fragment'][idx] != 1:
+                                    depfrag = config.Derived_Horizontal_Fragments['Horizontal_Fragment_Name'][idx]
+                                    idx = config.Derived_Horizontal_Fragments['Fragment_Name'].index(depfrag)
+                                
+                                HFRAGNAME = config.Derived_Horizontal_Fragments['Horizontal_Fragment_Name'][idx]
+                                idx = config.Horizontal_Fragments['Fragment_Name'].index(HFRAGNAME)
+                                
+                                curNode = HFNode(config.Derived_Horizontal_Fragments['Fragment_Name'][i],config.Horizontal_Fragments['Attribute'][idx],config.Horizontal_Fragments['Operator'][idx],config.Horizontal_Fragments['Val'][idx],name)
+                                curNode.generate_attributes_list(relNode.get_attributes())
+                                curNode.setUseOnlyAttributes()
+                                leaveNodes.append(curNode)
+
+                        child = UnionNode()
+                        child.children.append(leaveNodes[0])
+                        child.setUseOnlyAttributes()
+                        leaveNodes[0].parent = child
+
+                        for i in range(1,len(leaveNodes)-1):
+                            child.children.append(leaveNodes[i])
+                            leaveNodes[i].parent = child
+                            child.generate_attributes_list()
+
+                            nuChild = UnionNode()
+                            nuChild.children.append(child)
+                            nuChild.setUseOnlyAttributes()
+                            child.parent = nuChild
+                            child = nuChild
+                        
+                        child.children.append(leaveNodes[-1])
+                        leaveNodes[-1].parent = child
+                        child.generate_attributes_list()
+
+                        par = relNode.parent
+                        if par is not None:
+                            ndIndx = 0
+                            for i in range(len(par.children)):
+                                if par.children[i] == relNode:
+                                    ndIndx = i
+                                    break
+                            par.children[ndIndx] = child
+                            child.parent = par
+                        else:
+                            self.ROOT_TREE_NOT_LOCALIZATION = child
+            else:
+                config.errorPrint("Relation not found in Tables dictionary, name = "+str(name))

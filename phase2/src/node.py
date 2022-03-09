@@ -12,6 +12,7 @@ class Node:
             "attribute":[]
         }
         self.children = []
+        self.useOnlyAttributes = 0
 
     def get_attributes(self):
         '''
@@ -42,6 +43,12 @@ class Node:
         
         self.attributes = attrs
         self.relationAttributeTupleMap = mper
+
+    def setUseOnlyAttributes(self):
+        '''
+        Function to setUseOnlyAttributes as 1
+        '''
+        self.useOnlyAttributes = 1
 
 class ProjectNode(Node):
     '''
@@ -237,20 +244,77 @@ class UnionNode(Node):
     '''
     Class for representing union, to be used in performing localization(horizonatal fragmentation)
     '''
-    def __init__(self,attribute,operator,value):
+    def __init__(self):
         config.logger.log("UnionNode::Constructor")
-        self.attribute = attribute
-        self.value = value
-        self.operator = operator
+        # self.attribute = attribute
+        # self.value = value
+        # self.operator = operator
         super().__init__()
 
-    def generate_attributes_list(self,attribs):
+    def generate_attributes_list(self):
         '''
         Function to generate the list of attributes that will appear in this Union Node
         Care while passing attribs, it should be a dictionary
         '''
         config.logger.log("UnionNode::generate_attributes_list")
+        self.attributes = copy.deepcopy(self.children[0].attributes)
+        self.remove_duplicates()
+
+class HFNode(Node):
+    '''
+    Class for representing fragments which will be incorporated while localization
+    After localization the fragments which will be included are not represented using the 
+    RelationNode class but using this LeafNode
+    Used For HFs only
+    '''
+
+    def __init__(self,namerel,attribute,operator,value,namepar):
+        config.logger.log("HFNode::Constructor")
+
+        self.relation = namerel
+        self.attr = attribute
+        self.value = value
+        self.operator = operator
+        self.parentFragmentation = namepar
+        super().__init__()
+
+    def generate_attributes_list(self,attribs):
+        '''
+        Function to generate the list of attributes that will appear in this Leaf Node
+        Care while passing attribs, it should be a dictionary
+        '''
+        config.logger.log("HFNode::generate_attributes_list")
         self.attributes = attribs
+        self.remove_duplicates()
+
+class VFNode(Node):
+    '''
+    Class for representing fragments which will be incorporated while localization
+    After localization the fragments which will be included are not represented using the 
+    RelationNode class but using this LeafNode
+    Used For HFs only
+    '''
+    def __init__(self,namerel,parname):
+        config.logger.log("VFNode::Constructor")
+        self.relation = namerel
+        self.parentFragmentation = parname
+        super().__init__()
+
+    def generate_attributes_list(self,attribs):
+        '''
+        Function to generate the list of attributes that will appear on this node 
+        '''
+        
+        config.logger.log("VFNode::generate_attributes_list")
+
+        rel = []
+        for i in range(len(attribs)):
+            rel.append(self.parentFragmentation)
+        dic = {
+            'attribute':attribs,
+            'relation':rel
+        }
+        self.attributes = dic
         self.remove_duplicates()
 
 
