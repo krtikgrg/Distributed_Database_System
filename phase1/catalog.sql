@@ -25,7 +25,7 @@ VALUES
     ("Restaurants", "VF",2),
     ("Food_Item", "HF",3),
     ("Order", "DHF",3),
-    ("Order_Items", NULL,0);
+    ("Order_Items", "DHF",3);
 
 UNLOCK TABLES;
 
