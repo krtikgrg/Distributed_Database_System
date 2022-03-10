@@ -41,3 +41,4 @@
     1. If all the conditions involved in OR are only using attributes from only one of the tables/childeren nodes only then it will be moved down the line. Otherwise that select condition will stay where it is.
 1. Numeric Data-Types are only supposed to be of INT type, float data type is not handled.
 1. Assuming no relation with a composite key will be fragmented.
+1. Assuming that VFs will have no column common in them except the key column

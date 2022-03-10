@@ -10,6 +10,7 @@ class Query:
     '''
     def __init__(self):
         config.logger.log("Query::Constructor")
+        self.emptyResult = 0
         pass
 
     def getAttrRelAoper(self,col):
@@ -46,11 +47,15 @@ class Query:
             #######then chack if that rel present in self.relations
             #######giving general value as "TO_BE_EXTRACTED for now"
             rel = None
+            # config.debugPrint("K"+col)
             for x in config.relationColumnMap:
+                # config.debugPrint(x)
                 if col in config.relationColumnMap[x]:
-                    rel = x
-                    break
+                    if x in self.relations:
+                        rel = x
+                        break
             if rel is None:
+                # config.debugPrint(config.relationColumnMap)
                 config.errorPrint("No relation contained the specified column "+col)
             attr = col
 
@@ -674,6 +679,25 @@ class Query:
                 nuConditions.append(conditions[i])
 
         nde.setConditions(nuConditions)
+        #check if no condition remaining
+        nde = nde.children[0]
+        father = nde.parent
+        if len(nuConditions) != 0:
+            father.setConditions(nuConditions)
+        else:
+            #Father dead
+            par = father.parent
+            if par is not None:
+                idxfnd = 0
+                for idx in len(par.children):
+                    if par.children[idx] == father:
+                        idxfnd = idx
+                        break
+                par.children[idxfnd] = nde
+                nde.parent = par
+            else:
+                nde.parent = None
+                self.ROOT_TREE_NOT_LOCALIZATION = nde
         
     def insertNodeProjectTree(self,curNode,mps,index):
         '''
@@ -998,3 +1022,368 @@ class Query:
                             self.ROOT_TREE_NOT_LOCALIZATION = child
             else:
                 config.errorPrint("Relation not found in Tables dictionary, name = "+str(name))
+
+    #pushing down through a VF
+    #given fragmentation done, a node which was VF is now a join node
+    #select can only be moved down a JOIN node, only to the child which have all the attributes required #DONE
+    #kind of same as we did earlier, will mimic exactly #DONE
+    #project can be moved down the same way as did earlier, moving projects down through the JOIN nodes
+
+    #pushing down through a HF
+    #given fragmentation done, a node which was HF is now a union node
+    #a select condition will go down both the nodes
+    #at the HF node check if you can logically have an answer #DONE
+    #if not then we have to remove that node #DONE
+    #pass all conditions down and first remove the irrelevant HFNodes #DONE
+    #check the empty result thing #DONE
+    #and then for the remaining nodes push the select down and (DONE remove the original select)
+    #push down the project to each select node
+    def checkCondition(self,cattr,coper,cval,attr,oper,val):
+        '''
+        Function to check if a condition is false or true logically
+        '''
+        config.logger.log("Query::checkCondition")
+
+        if cattr != attr:
+            return 1
+        if coper == '<=':
+            coper = '<'
+            cval = cval+1
+        elif coper == '>=':
+            coper = '>'
+            cval = cval-1
+        if oper == '<=':
+            oper = '<'
+            val = val+1
+        elif oper == '>=':
+            oper = '>'
+            val = val-1
+
+        if oper == '=':
+            if coper == '=':
+                if cval == val:
+                    return 1
+                return 0
+            elif coper == '!=':
+                if cval == val:
+                    return 0
+                return 1
+            elif coper == '<':
+                if val < cval:
+                    return 1
+                return 0
+            elif coper == '>':
+                if val > cval:
+                    return 1
+                return 0
+            else:
+                config.errorPrint("Unrecognised Operator")
+        elif oper == '!=':
+            if coper == '=':
+                if val == cval:
+                    return 0
+                return 1
+            elif coper == '!=':
+                return 1
+            elif coper == '>':
+                return 1
+            elif coper == '<':
+                return 1
+            else:
+                config.errorPrint("Unrecognised Operator")
+        elif oper == '>':
+            if coper == '=':
+                if cval>val:
+                    return 1
+                return 0
+            elif coper == '!=':
+                return 1
+            elif coper == '>':
+                return 1
+            elif coper == '<':
+                if cval > (val+1):
+                    return 1
+                return 0
+            else:
+                config.errorPrint("Unrecognised Operator")
+        elif oper == '<':
+            if coper == '=':
+                if cval < val:
+                    return 1
+                return 0
+            elif coper == '!=':
+                return 1
+            elif coper == '>':
+                if val > (cval+1):
+                    return 1
+                return 0
+            elif coper == '<':
+                return 1
+            else:
+                config.errorPrint("Unrecognised Operator")
+        else:
+            config.errorPrint("Unrecognised operator in select condition")
+            
+
+    def removeIrrelevantNodes(self,curNode,conditions):
+        '''
+        Function (recursive) to remove the irrelevant nodes.
+        Irrelevant in the sense that these nodes wont have any data logically as the conditions differ logically
+        '''
+        config.logger.log("Query::removeIrrelevantNodes")
+
+        if len(curNode.children) == 0:
+            #leaf fragment node
+            done = 1
+            for condition in conditions:
+                istrue = 0
+                for i in range(len(condition['attribute'])):
+                    a = self.checkCondition(curNode.attr,curNode.operator,curNode.value,condition['attribute'][i],condition['operator'][i],condition['value'][i])
+                    if a == 1:
+                        istrue = 1
+                        break
+                if istrue == 0:
+                    done = 0
+                    break
+            return done
+        else:
+            a = self.removeIrrelevantNodes(curNode.children[0],conditions) 
+            b = self.removeIrrelevantNodes(curNode.children[1],conditions) 
+            if a == 0 and b == 0:
+                return 0
+            elif a == 1 and b == 1:
+                return 1
+            elif a == 1 and b == 0:
+                curNode.children[0].parent = curNode.parent
+                par = curNode.parent
+                idxfnd = 0
+                for i in range(len(par.children)):
+                    if par.children[i] == curNode:
+                        idxfnd = i
+                        break
+                par.children[idxfnd] = curNode.children[0]
+                return 1
+            elif a == 0 and b == 1:
+                curNode.children[1].parent = curNode.parent
+                par = curNode.parent
+                idxfnd = 0
+                for i in range(len(par.children)):
+                    if par.children[i] == curNode:
+                        idxfnd = i
+                        break
+                par.children[i] = curNode.children[1]
+                return 1
+
+    def wrapperIrrelevant(self,concerned):
+        '''
+        wrapper function to delete irrelevant nodes based on select conditions
+        '''
+        config.logger.log("Query::wrapperIrrelevant")
+
+        for nde in concerned:
+            father = nde.parent
+            #pushing all conditions down and removing irrelevant nodes
+            a = self.removeIrrelevantNodes(nde,father.conditions)
+            if a == 0:
+                self.emptyResult = 1
+                print("Empty Result")
+                return
+
+    def addNewSelects(self,curNode,conditions,index):
+        '''
+        adding new select nodes right above the HF nodes
+        '''
+        tpe = str(type(curNode))
+        tpe = tpe.split()[1]
+        tpe = tpe[1:-2]
+
+        selectStructure = {
+            "relation":[],
+            "attribute":[],
+            "operator":[],
+            "value":[]
+        }
+
+        if tpe == "node.HFNode":
+            nuNode = SelectNode(conditions)
+            nuNode.parent = curNode.parent
+            curNode.parent = nuNode
+            nuNode.children.append(curNode)
+            nuNode.parent.children[index] = nuNode
+            nuNode.generate_attributes_list()
+            nuNode.setUseOnlyAttributes()
+            nuConditions = []
+
+            for condition in conditions:
+                nc = copy.deepcopy(selectStructure)
+                for i in range(len(condition['attribute'])):
+                    a = self.checkCondition(curNode.attr,curNode.operator,curNode.value,condition['attribute'][i],condition['operator'][i],condition['value'][i])
+                    if a == 1:
+                        nc['relation'].append(condition['relation'][i])
+                        nc['attribute'].append(condition['attribute'][i])
+                        nc['operator'].append(condition['operator'][i])
+                        nc['value'].append(condition['value'][i])
+                if len(nc['relation']) != 0:
+                    nuConditions.append(nc)
+            curNode.parent.setConditions(nuConditions)
+        else:
+            self.addNewSelects(curNode.children[0],conditions,0)
+            self.addNewSelects(curNode.children[1],conditions,1)
+
+    def pushSelectsHFNode(self,concerned):
+        '''
+        Function to push selects down the HF nodes
+        '''
+        config.logger.log("Query::pushSelectsHFNode")
+
+        #UnionNodes and HFNodes whose parent is a select node
+        selectStructure = {
+            "relation":[],
+            "attribute":[],
+            "operator":[],
+            "value":[]
+        }
+        for nde in concerned:
+            father = nde.parent
+
+            #push down
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+            conditions = nde.parent.getConditions()
+            if tpe == "node.HFNode":
+                nuConditions = []
+                for condition in conditions:
+                    nc = copy.deepcopy(selectStructure)
+                    for i in range(len(condition['attribute'])):
+                        a = self.checkCondition(nde.attr,nde.operator,nde.value,condition['attribute'][i],condition['operator'][i],condition['value'][i])
+                        if a == 1:
+                            nc['relation'].append(condition['relation'][i])
+                            nc['attribute'].append(condition['attribute'][i])
+                            nc['operator'].append(condition['operator'][i])
+                            nc['value'].append(condition['value'][i])
+                    if len(nc['relation']) != 0:
+                        nuConditions.append(nc)
+                nde.parent.setConditions(nuConditions)
+            else:
+                self.addNewSelects(nde,conditions,0)
+                #the parent select node will anyway be destroyed because the condition will move to the respective fragments
+                par = father.parent
+                if par is not None:
+                    idxfnd = 0
+                    for i in range(len(par.children)):
+                        if par.children[i] == father:
+                            idxfnd = i
+                            break
+                    par.children[idxfnd] = nde
+                    nde.parent = par
+                else:
+                    nde.parent = None
+                    self.ROOT_TREE_NOT_LOCALIZATION = nde
+
+    def pushSelectsVFNode(self,concerned):
+        '''
+        Function to push down selects down the VF nodes
+        '''
+        config.logger.log("Query::pushSelectsVFNode")
+
+        for nde in concerned:
+            nuConditions = []
+            conditions = nde.parent.getConditions()
+            for i in range(len(conditions)):
+                mps = self.generateMapRelationAttribute(conditions[i]['relation'],conditions[i]['attribute'])
+                done = self.pushDownSelect(nde,mps,conditions[i],0)
+                if done == 0:
+                    nuConditions.append(conditions[i])
+            father = nde.parent
+            if len(nuConditions) != 0:
+                father.setConditions(nuConditions)
+            else:
+                #Father dead
+                par = father.parent
+                if par is not None:
+                    idxfnd = 0
+                    for idx in len(par.children):
+                        if par.children[idx] == father:
+                            idxfnd = idx
+                            break
+                    par.children[idxfnd] = nde
+                    nde.parent = par
+                else:
+                    nde.parent = None
+                    self.ROOT_TREE_NOT_LOCALIZATION = nde
+
+    def pushSelectsFragmented(self):
+        '''
+        Function to push selects down the newly fragemented nodes
+        '''
+        
+        config.logger.log("Query::pushSelectsFragmented")
+
+        root = self.ROOT_TREE_NOT_LOCALIZATION
+        
+        concernedVF = []
+        concernedHF = []
+        
+        q = []
+        q.append(root)
+        while len(q)!=0:
+            nde = q.pop(0)
+
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+
+            if tpe == "node.UnionNode":
+                tpe2 = str(type(nde.parent))
+                tpe2 = tpe2.split()[1]
+                tpe2 = tpe2[1:-2]
+                #My only concern is selects currently
+                if tpe2 == "node.SelectNode":
+                    concernedHF.append(nde)
+            elif tpe == "node.JoinNode":
+                if nde.useOnlyAttributes == 1:
+                    tpe2 = str(type(nde.parent))
+                    tpe2 = tpe2.split()[1]
+                    tpe2 = tpe2[1:-2]
+                    #My only concern is selects currently
+                    if tpe2 == "node.SelectNode":
+                        concernedVF.append(nde)
+            
+            for x in nde.children:
+                q.append(x)
+        
+        self.wrapperIrrelevant(concernedHF)
+        if self.emptyResult == 1:
+            return
+        # self.PrintTree("./intermediate.md")
+        concernedHF = []
+        q = []
+        q.append(root)
+        while len(q)!=0:
+            nde = q.pop(0)
+
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+
+            if tpe == "node.UnionNode" or tpe == "node.HFNode":
+                tpe2 = str(type(nde.parent))
+                tpe2 = tpe2.split()[1]
+                tpe2 = tpe2[1:-2]
+                #My only concern is selects currently
+                if tpe2 == "node.SelectNode":
+                    concernedHF.append(nde)
+            
+            for x in nde.children:
+                q.append(x)
+
+        self.pushSelectsHFNode(concernedHF)
+        self.pushSelectsVFNode(concernedVF)
+
+
+
+    def pushProjectsFragmented(self):
+        '''
+        Function to push project operation down 
+        '''

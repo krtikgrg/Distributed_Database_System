@@ -46,3 +46,10 @@ while(True):
         config.parsedQuery.PrintTree('./optimized.md') 
         config.parsedQuery.replaceRelationsWithFragments()
         config.parsedQuery.PrintTree('./fragmented.md')
+        config.parsedQuery.pushSelectsFragmented()
+        if config.parsedQuery.emptyResult == 1:
+            continue
+        config.debugPrint("Okay")
+        config.parsedQuery.PrintTree('./fragmented_select.md')
+
+        # config.parsedQuery.pushProjectsFragmented()
