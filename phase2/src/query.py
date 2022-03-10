@@ -699,7 +699,7 @@ class Query:
                 nde.parent = None
                 self.ROOT_TREE_NOT_LOCALIZATION = nde
         
-    def insertNodeProjectTree(self,curNode,mps,index):
+    def insertNodeProjectTree(self,curNode,mps,index,fragmented = 0):
         '''
         Function to insert a project node that has been moved down
         '''
@@ -722,7 +722,7 @@ class Query:
                 if par.children[i] == curNode:
                     break
             ind = i
-            return self.insertNodeProjectTree(curNode,mps,ind)
+            return self.insertNodeProjectTree(curNode,mps,ind,fragmented)
         
         to_be_projected = {
             'attribute':[],
@@ -735,6 +735,8 @@ class Query:
         nuNode = ProjectNode(to_be_projected)
         nuNode.children.append(curNode)
         nuNode.generate_attributes_list()
+        if fragmented:
+            nuNode.setUseOnlyAttributes()
         nuNode.parent = curNode.parent
         curNode.parent = nuNode
         nuNode.parent.children[index] = nuNode
@@ -746,7 +748,7 @@ class Query:
         return 1
 
 
-    def pushDownProject(self,curNode,mps,index):
+    def pushDownProject(self,curNode,mps,index,fragmented = 0):
         '''
         Actual Function responsibe for pushing down the project node
         '''
@@ -756,10 +758,10 @@ class Query:
         if len(curNode.children) == 0:
             #relation node
             #insert project node
-            return self.insertNodeProjectTree(curNode,mps,index)
+            return self.insertNodeProjectTree(curNode,mps,index,fragmented)
         elif len(curNode.children) == 1:
             #select node
-            return self.pushDownProject(curNode.children[0],mps,0)
+            return self.pushDownProject(curNode.children[0],mps,0,fragmented)
         else:
             #join node
             lmps = copy.deepcopy(mps)
@@ -803,11 +805,11 @@ class Query:
                     break
 
             if left and eoleft:
-                self.pushDownProject(curNode.children[0],nlmps,0)
+                self.pushDownProject(curNode.children[0],nlmps,0,fragmented)
             if right and eoright:        
-                self.pushDownProject(curNode.children[1],nrmps,1)
+                self.pushDownProject(curNode.children[1],nrmps,1,fragmented)
             if addAboveCurrent:
-                return self.insertNodeProjectTree(curNode,mps,index)
+                return self.insertNodeProjectTree(curNode,mps,index,fragmented)
             return 0
             # Dict.pop(Key)
                         
@@ -1427,6 +1429,18 @@ class Query:
                 nde.parent = None
                 self.ROOT_TREE_NOT_LOCALIZATION = nde
 
+    def pushProjectsVFNode(self,concerned):
+        '''
+        function to push projects down the join nodes up until the fragment nodes
+        '''
+        config.logger.log("Query::pushProjectsVFNode")
+
+        #array of projects that need attention
+        for nde in concerned:
+            mps = self.generateMapRelationAttribute(nde.attributes['relation'],nde.attributes['attribute'])
+            self.pushDownProject(nde.children[0],mps,0,1)
+
+
     def pushProjectsFragmented(self):
         '''
         Function to push project operation down 
@@ -1449,7 +1463,8 @@ class Query:
                 tpe2 = str(type(nde.parent))
                 tpe2 = tpe2.split()[1]
                 tpe2 = tpe2[1:-2]
-                #My only concern is selects currently
+                #My only concern is projects currently
+                #as selects have been handled
                 if tpe2 == "node.ProjectNode":
                     concernedHF.append(nde)
             
@@ -1458,6 +1473,31 @@ class Query:
         self.pushProjectsHFNode(concernedHF)
         
         concernedVF = []
+        q = []
+        q.append(root)
+        while len(q)!=0:
+            nde = q.pop(0)
 
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+
+            if tpe == "node.JoinNode" and nde.useOnlyAttributes == 1:
+                tpe2 = str(type(nde.parent))
+                tpe2 = tpe2.split()[1]
+                tpe2 = tpe2[1:-2]
+                #My only concern is projects currently
+                #as selects have been handled
+                if tpe2 == "node.ProjectNode":
+                    concernedVF.append(nde.parent)
+                elif tpe2 == "node.SelectNode":
+                    tpe3 = str(type(nde.parent.parent))
+                    tpe3 = tpe3.split()[1]
+                    tpe3 = tpe3[1:-2]
+                    if tpe3 == "node.ProjectNode":
+                        concernedVF.append(nde.parent.parent)
+            
+            for x in nde.children:
+                q.append(x)
 
         self.pushProjectsVFNode(concernedVF)
