@@ -52,4 +52,5 @@ while(True):
         config.debugPrint("Okay")
         config.parsedQuery.PrintTree('./fragmented_select.md')
 
-        # config.parsedQuery.pushProjectsFragmented()
+        config.parsedQuery.pushProjectsFragmented()
+        config.parsedQuery.PrintTree('./complete.md')

@@ -1029,15 +1029,6 @@ class Query:
     #kind of same as we did earlier, will mimic exactly #DONE
     #project can be moved down the same way as did earlier, moving projects down through the JOIN nodes
 
-    #pushing down through a HF
-    #given fragmentation done, a node which was HF is now a union node
-    #a select condition will go down both the nodes
-    #at the HF node check if you can logically have an answer #DONE
-    #if not then we have to remove that node #DONE
-    #pass all conditions down and first remove the irrelevant HFNodes #DONE
-    #check the empty result thing #DONE
-    #and then for the remaining nodes push the select down and (DONE remove the original select)
-    #push down the project to each select node
     def checkCondition(self,cattr,coper,cval,attr,oper,val):
         '''
         Function to check if a condition is false or true logically
@@ -1381,9 +1372,92 @@ class Query:
         self.pushSelectsHFNode(concernedHF)
         self.pushSelectsVFNode(concernedVF)
 
+    def addNewProjects(self,curNode,mps,index):
+        '''
+        Function to add new project node in HFs
+        '''
+        config.logger.log("Query::addNewProjects")
 
+        if len(curNode.children) <= 1:
+            #encountered select node or fragment node
+            to_be_projected = {
+                'attribute':[],
+                'relation':[]
+            }
+            for tp in mps:
+                to_be_projected['relation'].append(tp[0])
+                to_be_projected['attribute'].append(tp[1])
+
+            nuNode = ProjectNode(to_be_projected)
+            nuNode.children.append(curNode)
+            nuNode.generate_attributes_list()
+            nuNode.setUseOnlyAttributes()
+            nuNode.parent = curNode.parent
+            curNode.parent = nuNode
+            nuNode.parent.children[index] = nuNode
+        else:
+            self.addNewProjects(curNode.children[0],mps,0)
+            self.addNewProjects(curNode.children[1],mps,1)
+            curNode.generate_attributes_list()
+
+    def pushProjectsHFNode(self,concerned):
+        '''
+        Function to push project nodes down the line, concerning only to HF nodes
+        '''
+        config.logger.log("Query::pushProjectsHFNode")
+
+        #UnionNodes whose parent is a project node
+        for nde in concerned:
+            father = nde.parent
+
+            mps = self.generateMapRelationAttribute(father.attributes['relation'],father.attributes['attribute'])
+            self.addNewProjects(nde,mps,0)
+
+            #the parent project node will anyway be destroyed because the condition will move to the respective fragments
+            par = father.parent
+            if par is not None:
+                idxfnd = 0
+                for i in range(len(par.children)):
+                    if par.children[i] == father:
+                        idxfnd = i
+                        break
+                par.children[idxfnd] = nde
+                nde.parent = par
+            else:
+                nde.parent = None
+                self.ROOT_TREE_NOT_LOCALIZATION = nde
 
     def pushProjectsFragmented(self):
         '''
         Function to push project operation down 
         '''
+        config.logger.log("Query::pushProjectsFragmented")
+
+        root = self.ROOT_TREE_NOT_LOCALIZATION
+
+        concernedHF = []
+        q = []
+        q.append(root)
+        while len(q)!=0:
+            nde = q.pop(0)
+
+            tpe = str(type(nde))
+            tpe = tpe.split()[1]
+            tpe = tpe[1:-2]
+
+            if tpe == "node.UnionNode":
+                tpe2 = str(type(nde.parent))
+                tpe2 = tpe2.split()[1]
+                tpe2 = tpe2[1:-2]
+                #My only concern is selects currently
+                if tpe2 == "node.ProjectNode":
+                    concernedHF.append(nde)
+            
+            for x in nde.children:
+                q.append(x)
+        self.pushProjectsHFNode(concernedHF)
+        
+        concernedVF = []
+
+
+        self.pushProjectsVFNode(concernedVF)
