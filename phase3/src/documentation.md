@@ -42,3 +42,6 @@
 1. Numeric Data-Types are only supposed to be of INT type, float data type is not handled.
 1. Assuming no relation with a composite key will be fragmented.
 1. Assuming that VFs will have no column common in them except the key column
+1. Assuming that the number of joins in a query will be less than or equal to 9
+1. Assuming that the horizontal fragments condition will be of the type attribute OPER value and it cannot be value1 OPER attribute OPER value2 that is 'col1 < 5' is acceptable but '5 < col1 < 10' is not acceptable.
+1. 2 relations can not have multiple joins on different attribute pairs, they are supposed to only have one join on one pair of attributes (one from each relation).

@@ -2,6 +2,8 @@ import config
 import sqlparse
 import copy
 from sql_metadata import Parser
+
+from optimization import Optimizer
 from node import Node,ProjectNode,SelectNode,AggregateNode,JoinNode,UnionNode,RelationNode,HavingNode,HFNode,VFNode
 class Query:
     '''
@@ -77,6 +79,9 @@ class Query:
 
         #varables to be parsed
         config.logger.log("Parse::Initialising variables to be parsed")
+
+        self.optimizer = Optimizer()
+
         self.relations = []
         self.join_conditions = {
             "relation1":[],
@@ -377,8 +382,11 @@ class Query:
 
         if self.HAVE_AGGREGATES is None:
             self.HAVE_AGGREGATES = 0
+        
         if self.HAVE_JOIN is None:
             self.HAVE_JOIN = 0
+        else:
+            self.join_conditions = self.optimizer.bestJoinOrder(self.join_conditions)
 
         config.debugPrint(self.relations)
         config.debugPrint(self.join_conditions)

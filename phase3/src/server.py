@@ -6,7 +6,7 @@ import config
 from input import TakeInput
 from trace import Logger
 from query import Query
-from preprocess import generateRelationColumnMapFromMetaData
+from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationSizes
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
@@ -19,7 +19,10 @@ elif n == 2:
 
 config.logger = Logger()
 toInp = TakeInput()
+getSchema(toInp)
 generateRelationColumnMapFromMetaData()
+initializeJoinSelectivities()
+getRelationSizes()
 
 while(True):
     query = toInp.inputQuery()

@@ -14,6 +14,8 @@ relationColumnMap = {
     't3' : ['col4','col5','d','e'],
     't4' : ['b','c','col3']
 }
+joinSelectivities = {}
+relationSizes = {}
 # relationColumnMap = {
 #     'r1' : ['a','q','r','s','t'],
 #     'r2' : ['b','l','m','n','o','p'],

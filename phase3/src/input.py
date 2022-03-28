@@ -10,7 +10,7 @@ class TakeInput:
     
     def inputQuery(self):
         '''
-        Function to take input from terminal. It accepts input until we encounter a semi-colon(;).
+        Function to take queries as input from terminal. It accepts input until we encounter a semi-colon(;).
         '''
 
         config.logger.log("TakeInput::inputQuery")
@@ -37,3 +37,10 @@ class TakeInput:
 
         config.debugPrint(inputString)
         return inputString
+
+    def inputSchema(self):
+        '''
+        Function to take sql queries as input which will describe the schema
+        '''
+        config.logger.log("TakeInput::inputSchema")
+        #pending

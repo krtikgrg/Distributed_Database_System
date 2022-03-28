@@ -132,3 +132,12 @@ So when generating the queries , only use attribute names not relation names
 even when pushing down the selects and joins in union node, only use attribute names
 
 Update Catalog on sites
+
+
+use below command for each entry size in bytes and for each cell size in bytes
+select distinct column_name,data_type,character_maximum_length from COLUMNS WHERE TABLE_NAME = 'Sites';
+
+
+GET_RELATION_SIZES     select distinct table_rows from information_schema.TABLES where TABLE_NAME = 'Columns';
+above is number of rows in a relation, for HF get this value for all HFs and then add 
+same for DHF and for VF pick any one and get that value and this is it
