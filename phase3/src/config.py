@@ -18,6 +18,10 @@ joinSelectivities = {}
 relationNumEntries = {}
 globalTunnels = {}
 globalConnections = {}
+latencies = {}
+transferCoefficients = {}
+costProcessing = 1e-6
+relationCellSizeMap = {}
 # relationColumnMap = {
 #     'r1' : ['a','q','r','s','t'],
 #     'r2' : ['b','l','m','n','o','p'],

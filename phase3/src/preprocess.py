@@ -5,6 +5,7 @@ from sshtunnel import SSHTunnelForwarder
 import pymysql
 import logging
 import pandas as pd
+import time
 
 def createSSHTunnels():
     '''
@@ -107,7 +108,14 @@ def getRelationLengths():
     for i in range(len(config.Allocation['Fragment_Name'])):
         frag_name = config.Allocation['Fragment_Name'][i]
         siteno = config.Allocation['Site'][i]
+
+        strt = time.time()
         sz = pd.read_sql_query(sql+frag_name+"';",config.globalConnections[siteno])
+        end = time.time()
+        if siteno not in config.latencies:
+            config.latencies[siteno] = []
+        config.latencies[siteno].append(end-strt)
+
         sz = sz.iloc[0][0]
         config.relationNumEntries[frag_name] = sz
 
@@ -138,3 +146,75 @@ def getRelationLengths():
 
     for x in config.relationNumEntries:
         config.debugPrint(x+" "+str(config.relationNumEntries[x]))
+    
+def getEntrySizes():
+    '''
+    Function which will execute sql commands to get eah cell size and entry size for all the tables
+    '''
+    config.logger.log("preprocess::getEntrySizes")
+    
+    sql = "select distinct column_name,data_type,character_maximum_length from information_schema.COLUMNS WHERE TABLE_NAME = '"
+    mper = {}
+    for i in range(len(config.Allocation['Fragment_Name'])):
+        frag_name = config.Allocation['Fragment_Name'][i]
+        siteno = config.Allocation['Site'][i]
+
+        sz = pd.read_sql_query(sql+frag_name+"';",config.globalConnections[siteno])
+        cols = sz['COLUMN_NAME']
+        datype = sz['DATA_TYPE']
+        sszz = sz['CHARACTER_MAXIMUM_LENGTH']
+        
+        mper[frag_name] = {}
+        for j in range(len(datype)):
+            if datype[j] == 'varchar':
+                mper[frag_name][cols[j]] = int(sszz[j])
+            elif datype[j] == 'int':
+                mper[frag_name][cols[j]] = 4
+            else:
+                mper[frag_name][cols[j]] = 8
+    
+    for i in range(len(config.Horizontal_Fragments['Fragment_Name'])):
+        frag_name = config.Horizontal_Fragments['Fragment_Name'][i]
+        tab_name = config.Horizontal_Fragments['Table_Name'][i]
+
+        if tab_name not in config.relationCellSizeMap:
+            config.relationCellSizeMap[tab_name] = {}
+            for x in mper[frag_name]:
+                config.relationCellSizeMap[tab_name][x] = mper[frag_name][x]
+        
+    for i in range(len(config.Vertical_Fragments['Fragment_Name'])):
+        frag_name = config.Vertical_Fragments['Fragment_Name'][i]
+        tab_name = config.Vertical_Fragments['Table_Name'][i]
+
+        if tab_name not in config.relationCellSizeMap:
+            config.relationCellSizeMap[tab_name] = {}
+        for x in mper[frag_name]:
+            config.relationCellSizeMap[tab_name][x] = mper[frag_name][x]
+
+    for i in range(len(config.Derived_Horizontal_Fragments['Fragment_Name'])):
+        frag_name = config.Derived_Horizontal_Fragments['Fragment_Name'][i]
+        tab_name = config.Derived_Horizontal_Fragments['Table_Name'][i]
+
+        if tab_name not in config.relationCellSizeMap:
+            config.relationCellSizeMap[tab_name] = {}
+            for x in mper[frag_name]:
+                config.relationCellSizeMap[tab_name][x] = mper[frag_name][x]
+    
+    for x in config.relationColumnMap:
+        if x not in config.relationCellSizeMap:
+            config.relationCellSizeMap[x] = copt.deepcopy(mper[x])
+
+    config.debugPrint(config.relationCellSizeMap)
+
+def computeTransferCoefficients():
+    '''
+    Function to compute the transfer cost for each site using the latencies that were present while retrieving the sql result
+    '''
+    config.logger.log('preprocess::computeTransferCoefficients')
+
+    for x in config.latencies:
+        summ = 0
+        for y in config.latencies[x]:
+            summ += y
+        summ /= len(config.latencies[x])
+        config.transferCoefficients[x] = summ

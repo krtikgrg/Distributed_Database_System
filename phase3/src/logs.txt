@@ -24,6 +24,9 @@ config::debugPrint
 config::debugPrint
 config::debugPrint
 config::debugPrint
+preprocess::computeTransferCoefficients
+preprocess::getEntrySizes
+config::debugPrint
 TakeInput::inputQuery
 config::debugPrint
 config::debugPrint
