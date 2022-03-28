@@ -15,7 +15,7 @@ class Optimizer:
         cost = 0
         relation_sz = {}
         for x in relations:
-            relation_sz[x] = config.relationSizes[x]
+            relation_sz[x] = config.relationNumEntries[x]
         
         for x in joinOrder:
             r1 = x[0]

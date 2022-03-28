@@ -1,5 +1,58 @@
 import config
 import copy
+import sshtunnel
+from sshtunnel import SSHTunnelForwarder
+import pymysql
+import logging
+import pandas as pd
+
+def createSSHTunnels():
+    '''
+    Function to create ssh tunnels as global variables for each of the sites
+    '''
+    config.logger.log("preprocess::createSSHTunnels")
+    
+    if config.DEBUG:
+        sshtunnel.DEFAULT_LOGLEVEL = logging.DEBUG
+
+    for i in range(len(config.Sites['Site'])):
+        siteno = config.Sites['Site'][i]
+        ip = config.Sites['IP_Address'][i]
+        passw = config.Sites['Password'][i]
+        uname = config.Sites['User_Name'][i]
+
+        config.globalTunnels[siteno] = SSHTunnelForwarder(
+            (ip,22),
+            ssh_username=uname,
+            ssh_password=passw,
+            remote_bind_address=('127.0.0.1', 3306)
+        )
+        config.globalTunnels[siteno].start()
+
+def createMySqlConnections():
+    '''
+    Function to create mysql connections using ssh tunnels with our sites
+    '''
+    config.logger.log("preprocess::createMySqlConnections")
+
+    for x in config.globalTunnels:
+        config.globalConnections[x] = pymysql.connect(
+            host='127.0.0.1',
+            user='user',
+            passwd='iiit123',
+            db='zomato_catalog_outlaws',
+            port=config.globalTunnels[x].local_bind_port
+        )
+
+def closeConnections():
+    '''
+    Function to close the ssh tunnels and the mysql connections
+    '''
+    config.logger.log("preprocess::closeConnetions")
+
+    for x in config.globalTunnels:
+        config.globalConnections[x].close()
+        config.globalTunnels[x].close()
 
 def getSchema(toInp):
     '''
@@ -35,7 +88,7 @@ def initializeJoinSelectivities():
     config.logger.log("preprocess::initializeJoinSelectivities")
 
     config.joinSelectivities = {}
-    rels = copy.deepcopy(config.relationColumnMap.keys())
+    rels = copy.deepcopy(list(config.relationColumnMap.keys()))
     for i in range(len(rels)):
         for j in range(len(rels)):
             config.joinSelectivities[(rels[i],rels[j])] = 1
@@ -43,14 +96,45 @@ def initializeJoinSelectivities():
     #if input is being taken then take it now and update the ones for which you get an input
     #pending
 
-def getRelationSizes():
+def getRelationLengths():
     '''
-    Function to scan relation size using ssh and sql, we will get sizes of frags and then add them to get actual relation sizes
+    Function to scan relation length using ssh and sql, we will get sizes of frags and then add them to get actual relation sizes
     '''
-    config.logger.log('preprocess::getRelationSizes')
-    #pending
+    config.logger.log('preprocess::getRelationLengths')
     
-    #TEMPORARY
-    config.relationSizes = {}
-    for x in config.relationColumnMap:
-        config.relationSizes[x] = 10
+    sql = "select distinct table_rows from information_schema.TABLES where TABLE_NAME = '"
+    
+    for i in range(len(config.Allocation['Fragment_Name'])):
+        frag_name = config.Allocation['Fragment_Name'][i]
+        siteno = config.Allocation['Site'][i]
+        sz = pd.read_sql_query(sql+frag_name+"';",config.globalConnections[siteno])
+        sz = sz.iloc[0][0]
+        config.relationNumEntries[frag_name] = sz
+
+    for i in range(len(config.Horizontal_Fragments['Table_Name'])):
+        frag_name = config.Horizontal_Fragments['Fragment_Name'][i]
+        tab_name = config.Horizontal_Fragments['Table_Name'][i]
+
+        if tab_name not in config.relationNumEntries:
+            config.relationNumEntries[tab_name] = 0
+        
+        config.relationNumEntries[tab_name] += config.relationNumEntries[frag_name]
+    
+    for i in range(len(config.Vertical_Fragments['Table_Name'])):
+        frag_name = config.Vertical_Fragments['Fragment_Name'][i]
+        tab_name = config.Vertical_Fragments['Table_Name'][i]
+
+        if tab_name not in config.relationNumEntries:
+            config.relationNumEntries[tab_name] = config.relationNumEntries[frag_name]
+
+    for i in range(len(config.Derived_Horizontal_Fragments['Table_Name'])):
+        frag_name = config.Derived_Horizontal_Fragments['Fragment_Name'][i]
+        tab_name = config.Derived_Horizontal_Fragments['Table_Name'][i]
+
+        if tab_name not in config.relationNumEntries:
+            config.relationNumEntries[tab_name] = 0
+        
+        config.relationNumEntries[tab_name] += config.relationNumEntries[frag_name]
+
+    for x in config.relationNumEntries:
+        config.debugPrint(x+" "+str(config.relationNumEntries[x]))

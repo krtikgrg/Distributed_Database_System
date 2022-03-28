@@ -6,7 +6,7 @@ import config
 from input import TakeInput
 from trace import Logger
 from query import Query
-from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationSizes
+from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationLengths, createSSHTunnels, createMySqlConnections, closeConnections
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
@@ -22,7 +22,9 @@ toInp = TakeInput()
 getSchema(toInp)
 generateRelationColumnMapFromMetaData()
 initializeJoinSelectivities()
-getRelationSizes()
+createSSHTunnels()
+createMySqlConnections()
+getRelationLengths()
 
 while(True):
     query = toInp.inputQuery()
@@ -36,6 +38,7 @@ while(True):
         config.debugPrint(sqlParsed)
 
         if sqlParsed == 'EXIT' or sqlParsed == 'quit':
+            closeConnections()
             config.exitShell()
 
         config.parsedQuery = Query()

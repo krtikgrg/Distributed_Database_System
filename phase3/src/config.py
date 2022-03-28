@@ -15,7 +15,9 @@ relationColumnMap = {
     't4' : ['b','c','col3']
 }
 joinSelectivities = {}
-relationSizes = {}
+relationNumEntries = {}
+globalTunnels = {}
+globalConnections = {}
 # relationColumnMap = {
 #     'r1' : ['a','q','r','s','t'],
 #     'r2' : ['b','l','m','n','o','p'],
@@ -67,7 +69,7 @@ Sites = {
     'IP_Address' : ["10.3.5.215","10.3.5.214","10.3.5.213","10.3.5.212"]
 }
 Allocation = {
-    'Fragment_Name' : ["Food_Items_Chinese","Food_Items_Indian","Food_Items_Italian","Restaurants_Minimal","Restaurants_Remaining","User_Minimal","User_Remaining","Order_Items_Chinese","Order_Items_Indian","Order_Items_Italian","User_Restaurant_Order_Amount_Chinese","User_Restaurant_Order_Amount_Indian","User_Restaurant_Order_Amount_Italian"],
+    'Fragment_Name' : ["Food_Item_Chinese","Food_Item_Indian","Food_Item_Italian","Restaurants_Minimal","Restaurants_Remaining","User_Minimal","User_Remaining","Order_Items_Chinese","Order_Items_Indian","Order_Items_Italian","User_Restaurant_Order_Amount_Chinese","User_Restaurant_Order_Amount_Indian","User_Restaurant_Order_Amount_Italian"],
     'Site' : [1,2,3,4,4,4,2,1,2,3,1,2,3]
 }
 
