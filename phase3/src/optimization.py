@@ -1,5 +1,6 @@
 import config
 from itertools import permutations
+import pandas as pd
 class Optimizer:
     '''
     Class for different kinds of optimizations that are to be incorporated in the code
@@ -92,6 +93,62 @@ class Optimizer:
         return nu_join_conditions
 
     def getDirectionUnion(self,site1,len1,site2,len2):
+        '''
+        FOR UNION
+        Function to check whether we will move from site 1 to site 2 or site 2 to site1
+        '''
+        config.logger.log("Optimizer::getDirectionUnion")
         if len1>len2:
             return 1
         return 0
+
+    def getDirectionJoin(self,re_vals,r1,r1a,r2,r2a):
+        '''
+        FOR JOIN
+        Function to check whether we will move from site 1 to site 2 or site 2 to site1
+        '''
+        config.logger.log("Optimizer::getDirectionJoin")
+        t1 = re_vals[0][0]
+        t1site = re_vals[0][1]
+        t1len = re_vals[0][2]
+
+        t2 = re_vals[1][0]
+        t2site = re_vals[1][1]
+        t2len = re_vals[1][2]
+
+        c12 = 0 #from 1 to 2
+        c21 = 0 #from 2 to 1
+
+        CP = config.costProcessing
+        CTF = config.transferCoefficients[t1site]+config.transferCoefficients[t2site]
+
+        sqlQuery = "SELECT COUNT(DISTINCT "+ r1a +") FROM "+config.catalogName+"."+t1
+        A = pd.read_sql_query(sqlQuery,config.globalConnections[t1site])
+        len1 = A.iloc[0][0]
+        
+        sqlQuery = "SELECT COUNT(DISTINCT "+ r2a +") FROM "+config.catalogName+"."+t2
+        A = pd.read_sql_query(sqlQuery,config.globalConnections[t2site])
+        len2 = A.iloc[0][0]
+
+        sql = "select distinct column_name from information_schema.COLUMNS WHERE TABLE_NAME = '"+t2+"';"
+        sz = pd.read_sql_query(sql,config.globalConnections[t2site])
+        cols = sz['COLUMN_NAME']
+        sz = 0
+        # print(config.relationCellSizeMap)
+        # print(config.joinSelectivities)
+        for x in cols:
+            sz += config.relationCellSizeMap[r2][x]
+        c21 = (CP*t1len) + (CTF*len1*config.relationCellSizeMap[r1][r1a]) + (CP*len1*t2len) + (CTF*config.joinSelectivities[(r1,r2)]*len1*t2len*sz)
+
+        sql = "select distinct column_name from information_schema.COLUMNS WHERE TABLE_NAME = '"+t1+"';"
+        sz = pd.read_sql_query(sql,config.globalConnections[t1site])
+        cols = sz['COLUMN_NAME']
+        sz = 0
+        for x in cols:
+            sz += config.relationCellSizeMap[r1][x]
+        c12 = (CP*t2len) + (CTF*len2*config.relationCellSizeMap[r2][r2a]) + (CP*len2*t1len) + (CTF*config.joinSelectivities[(r2,r1)]*len2*t1len*sz)
+        # print(c12,c21)
+        if c12>c21:
+            return 0
+        return 1
+        ####Watch line 162 in query.py

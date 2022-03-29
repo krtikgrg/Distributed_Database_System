@@ -65,3 +65,4 @@ while(True):
         config.parsedQuery.pushProjectsFragmented()
         config.parsedQuery.PrintTree('./complete.md')
         config.parsedQuery.execute()
+        deleteTempFilesTables()

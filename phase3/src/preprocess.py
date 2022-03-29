@@ -7,6 +7,7 @@ import logging
 import pandas as pd
 import time
 import paramiko
+import os
 
 def createSSHTunnels():
     '''
@@ -238,6 +239,8 @@ def deleteTempFilesTables():
     '''
     config.logger.log("preprocess::deleteTempFilesTables")
     #temp file is only dump.txt
+    if os.path.exists("dump.txt"):
+        os.remove("dump.txt")
 
     command = "rm ./Outlaws/dump.txt"
     for x in config.paramikoConnections:
@@ -252,3 +255,5 @@ def deleteTempFilesTables():
             cur = config.globalConnections[siteno].cursor()
             cur.execute(sqlQuery)
             config.globalConnections[siteno].commit()
+    
+    config.tempTables = {}

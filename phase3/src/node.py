@@ -348,6 +348,72 @@ class JoinNode(Node):
         self.attributes = a1
         self.remove_duplicates()
 
+    def getColumns(self,t1name):
+        '''
+        Function to get all the columns which are to be added in the sql query
+        '''
+        config.logger.log("JoinNode::getColumns")
+
+        clause = ""
+        for x in range(len(self.attributes['attribute'])):
+            if self.attributes['attribute'][x] != self.r1_attribute:
+                clause = clause+self.attributes['attribute'][x]
+            else:
+                clause = clause+t1name+"."+self.attributes['attribute'][x]
+            clause=clause+" , "
+        clause = clause[:-3]
+        return clause
+
+    def execute(self,re_vals):
+        '''
+        Function to execute the join at this particular JoinNode
+        '''
+        config.logger.log("JoinNode::execute")
+
+        table1Name = re_vals[0][0]
+        table1Site = re_vals[0][1]
+        table1Leng = re_vals[0][2]
+
+        table2Name = re_vals[1][0]
+        table2Site = re_vals[1][1]
+        table2Leng = re_vals[1][2]
+
+        if table1Site == table2Site:
+            self.site = table1Site
+            self.lenRelation = table1Leng*table2Leng*config.joinSelectivities[(self.r1,self.r2)]
+            #execute join directly here
+            nuRel = table1Name[:5]+table2Name[:5]+str(time.time()).replace(".","")
+            # SELECT * FROM Orders INNER JOIN Customers ON Orders.CustomerID=Customers.CustomerID;
+            if self.r1_attribute == self.r2_attribute:
+                temp = " SELECT "+self.getColumns(table1Name) +" FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+table2Name+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+table2Name+"."+self.r2_attribute+";"
+            else:
+                temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+table2Name+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+table2Name+"."+self.r2_attribute+";"
+            sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
+            cur = config.globalConnections[self.site].cursor()
+            cur.execute(sqlQuery)
+            config.globalConnections[self.site].commit()
+            config.tempTables[nuRel] = [self.site]
+
+            # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+            # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+            # print()
+            # print(A)
+            return nuRel,self.site,self.lenRelation
+        else:
+            direction = config.parsedQuery.optimizer.getDirectionJoin(re_vals,self.r1,self.r1_attribute,self.r2,self.r2_attribute)
+            if direction == 0:
+                #move 2 to 1
+                self.site = table1Site
+
+                #execute
+
+            else:
+                #move 1 to 2
+                self.site = table2Site
+
+                #execute
+
+
 class UnionNode(Node):
     '''
     Class for representing union, to be used in performing localization(horizonatal fragmentation)
