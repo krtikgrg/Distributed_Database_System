@@ -90,3 +90,8 @@ class Optimizer:
                     nu_join_conditions['attribute2'].append(join_conditions['attribute2'][i])
         
         return nu_join_conditions
+
+    def getDirectionUnion(self,site1,len1,site2,len2):
+        if len1>len2:
+            return 1
+        return 0

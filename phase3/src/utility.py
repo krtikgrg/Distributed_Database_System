@@ -9,13 +9,14 @@ def dumpTable(relname,siteno,ofile = 'dump.txt'):
     config.logger.log("utility::dumpTable")
     
     command = "echo 'use "+config.catalogName+";' > ./Outlaws/"+ofile
-    config.paramikoConnections[siteno].exec_command(command)
-
-    command = "mysqldump -u user -piiit123 "+config.catalogName+" "+relname+" >> ./Outlaws/"+ofile
-    print(command)
     (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
     op = c.read()
-    print(op)
+
+    command = "mysqldump -u user -piiit123 "+config.catalogName+" "+relname+" >> ./Outlaws/"+ofile
+    # print(command)
+    (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
+    op = c.read()
+    # print(op)
 
 def copyFromServer(siteno,ofile = 'dump.txt'):
     '''
@@ -42,4 +43,5 @@ def importTable(siteno,ofile = 'dump.txt'):
     config.logger.log("utility::importTable")
 
     command = "mysql -u user -piiit123 < ./Outlaws/"+ofile
-    config.paramikoConnections[siteno].exec_command(command)
+    (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
+    op = c.read()

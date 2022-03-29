@@ -141,3 +141,5 @@ select distinct column_name,data_type,character_maximum_length from COLUMNS WHER
 GET_RELATION_SIZES     select distinct table_rows from information_schema.TABLES where TABLE_NAME = 'Columns';
 above is number of rows in a relation, for HF get this value for all HFs and then add 
 same for DHF and for VF pick any one and get that value and this is it
+
+when copying a table, the copied table needs to be added in the tempTables for the new site too

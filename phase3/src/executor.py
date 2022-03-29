@@ -17,16 +17,17 @@ class Executor:
 
         return_values = []
         for i in range(len(node.children)):
-            relname,site = self.dfs(node.children[i])
+            relname,site,leng = self.dfs(node.children[i])
             tempList = []
             tempList.append(relname)
             tempList.append(site)
+            tempList.append(leng)
             return_values.append(tempList)
 
         if len(return_values) == 0: #Base Case
             return node.execute()
-            
-        return 1,1
+
+        return node.execute(return_values)
 
     def execute(self,root):
         '''

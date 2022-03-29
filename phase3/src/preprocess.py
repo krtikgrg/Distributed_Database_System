@@ -241,13 +241,14 @@ def deleteTempFilesTables():
 
     command = "rm ./Outlaws/dump.txt"
     for x in config.paramikoConnections:
-        config.paramikoConnections[x].exec_command(command)
+        (a,b,c) = config.paramikoConnections[x].exec_command(command)
+        op = c.read()
 
     for x in config.tempTables:
         tab_name = x
-        siteno = config.tempTables[x]
-
         sqlQuery = "drop table "+config.catalogName+"."+tab_name+";"
-        cur = config.globalConnections[siteno].cursor()
-        cur.execute(sqlQuery)
-        config.globalConnections[siteno].commit()
+        
+        for siteno in config.tempTables[x]:
+            cur = config.globalConnections[siteno].cursor()
+            cur.execute(sqlQuery)
+            config.globalConnections[siteno].commit()

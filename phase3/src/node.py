@@ -2,6 +2,10 @@ import config
 import copy
 import time
 import pandas as pd
+import random
+from optimization import Optimizer
+from utility import dumpTable, importTable, copyFromServer, copyToServer
+
 class Node:
     '''
     Class for the node that will be used in tree generation
@@ -100,6 +104,45 @@ class ProjectNode(Node):
         self.attributes = self.to_be_projected
         self.remove_duplicates()
 
+    def generateProjectClause(self):
+        '''
+        Function to append all the columns to be projected
+        '''
+        config.logger.log("ProjectNode::generateProjectClause")
+
+        clause = ""
+        for i in range(len(self.to_be_projected['attribute'])):
+            clause = clause + self.to_be_projected['attribute'][i]+" , "
+        clause = clause[:-3]
+        return clause
+
+    def execute(self,re_vals):
+        '''
+        Executing project nodes
+        '''
+        config.logger.log("ProjectNode::execute")
+
+        self.relation = re_vals[0][0]
+        self.site = re_vals[0][1]
+        self.lenRelation = re_vals[0][2]
+
+        nuRel = self.relation[:5]+str(time.time()).replace(".","")
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select "+self.generateProjectClause()+" from " + config.catalogName + "." +self.relation+";"
+        
+        config.debugPrint("To be Executed :: "+sqlQuery)
+
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+
+        config.tempTables[nuRel] = [self.site]
+
+        # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        # print()
+        # print(A)
+        return nuRel,self.site,self.lenRelation
+
 class SelectNode(Node):
     '''
     Class for the select node that will be used in tree generation
@@ -153,6 +196,53 @@ class SelectNode(Node):
         self.conditions = []
         for condition in conditions:
             self.conditions.append(condition)
+
+    def generateWhereClause(self):
+        '''
+        Function to add all the select conditions in the where clause
+        '''
+        config.logger.log("Node::generateWhereClause")
+
+        clause = ""
+        for j in range(len(self.conditions)):
+            current = "("
+            for i in range(len(self.conditions[j]['attribute'])):
+                current = current+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
+            current = current[:-4]
+            current += ")"
+            clause += current
+            clause += " AND "
+        
+        clause = clause[:-5]
+        return clause
+
+    def execute(self,re_vals):
+        '''
+        Function to execute the current select node on its child node
+        '''
+        config.logger.log("SelectNode::execute")
+        self.relation = re_vals[0][0]
+        self.site = re_vals[0][1]
+        self.lenRelation = int(round(random.uniform(0.3,0.5),2) * re_vals[0][2])
+        if self.lenRelation == 0:
+            self.lenRelation = 1
+
+        nuRel = self.relation[:5]+str(time.time()).replace(".","")
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+" where "+ self.generateWhereClause() +";"
+        
+        config.debugPrint("To be Executed :: "+sqlQuery)
+
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+
+        config.tempTables[nuRel] = [self.site]
+
+        # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        # print()
+        # print(A)
+        return nuRel,self.site,self.lenRelation
 
 class HavingNode(Node):
     '''
@@ -278,6 +368,67 @@ class UnionNode(Node):
         self.attributes = copy.deepcopy(self.children[0].attributes)
         self.remove_duplicates()
 
+    def execute(self,re_vals):
+        '''
+        Function to execute Union Node function
+        '''    
+        config.logger.log("UnionNode::execute")
+
+        table1Name = re_vals[0][0]
+        table1Site = re_vals[0][1]
+        table1Leng = re_vals[0][2]
+
+        table2Name = re_vals[1][0]
+        table2Site = re_vals[1][1]
+        table2Leng = re_vals[1][2]
+
+        self.lenRelation = table1Leng+table2Leng
+
+        if table1Site == table2Site: #Same Site Union
+            #no Copying
+            # execute query
+            self.site = table1Site
+            #return 
+        else: #different site Union
+            direction = config.parsedQuery.optimizer.getDirectionUnion(table1Site,table1Leng,table2Site,table2Leng)
+            if direction == 0:
+                #copying from site2 to site1
+                dumpTable(table2Name,table2Site)
+                copyFromServer(table2Site)
+                copyToServer(table1Site)
+                importTable(table1Site)
+                #add to tempTables
+                config.tempTables[table2Name].append(table1Site)
+                #execute query
+                self.site = table1Site
+                # return
+            else:
+                #copying from site1 to site2
+                dumpTable(table1Name,table1Site)
+                copyFromServer(table1Site)
+                copyToServer(table2Site)
+                importTable(table2Site)
+                #add to tempTables
+                config.tempTables[table1Name].append(table2Site)
+                #execute query
+                self.site = table2Site
+                # return
+        
+        nuRel = table1Name[:5]+table2Name[:5]+str(time.time()).replace(".","")
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +table1Name+" UNION select * from " + config.catalogName + "." +table2Name+";"
+    
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+        config.tempTables[nuRel] = [self.site]
+
+        # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        # print()
+        # print(A)
+
+        return nuRel,self.site,self.lenRelation
+
 class HFNode(Node):
     '''
     Class for representing fragments which will be incorporated while localization
@@ -294,6 +445,7 @@ class HFNode(Node):
         self.value = value
         self.operator = operator
         self.parentFragmentation = namepar
+        self.lenRelation = config.relationNumEntries[namerel]
         super().__init__()
 
     def generate_attributes_list(self,attribs):
@@ -320,14 +472,14 @@ class HFNode(Node):
         cur.execute(sqlQuery)
         config.globalConnections[self.site].commit()
 
-        config.tempTables[nuRel] = self.site
+        config.tempTables[nuRel] = [self.site]
 
         # return nuRel,self.site
 
-        sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
-        A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
-        print()
-        print(A)
+        # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        # print()
+        # print(A)
         
         # nuqry = "create temporary table if not exists "+ config.catalogName+ ".tempo;"
         # cur = config.globalConnections[self.site+1].cursor()
@@ -335,7 +487,7 @@ class HFNode(Node):
         # # config.globalConnections[self.site+1].commit()
 
         # A.to_sql(name='tempo',con=config.globalConnections[self.site+1],schema=config.catalogName,flavor= 'mysql',index=False)
-        return nuRel,self.site
+        return nuRel,self.site,self.lenRelation
 
 class VFNode(Node):
     '''
@@ -348,6 +500,7 @@ class VFNode(Node):
         config.logger.log("VFNode::Constructor")
         self.relation = namerel
         self.parentFragmentation = parname
+        self.lenRelation = config.relationNumEntries[namerel]
         super().__init__()
 
     def generate_attributes_list(self,attribs):
@@ -381,8 +534,8 @@ class VFNode(Node):
         cur.execute(sqlQuery)
         config.globalConnections[self.site].commit()
 
-        config.tempTables[nuRel] = self.site
-        return nuRel,self.site
+        config.tempTables[nuRel] = [self.site]
+        return nuRel,self.site,self.lenRelation
 
 class RelationNode(Node):
     '''
@@ -391,6 +544,7 @@ class RelationNode(Node):
     def __init__(self,name):
         config.logger.log("RelationNode::Constructor")
 
+        self.lenRelation = config.relationNumEntries[name]
         self.relation = name
         super().__init__()
 
@@ -425,5 +579,5 @@ class RelationNode(Node):
         cur.execute(sqlQuery)
         config.globalConnections[self.site].commit()
 
-        config.tempTables[nuRel] = self.site
-        return nuRel,self.site
+        config.tempTables[nuRel] = [self.site]
+        return nuRel,self.site,self.lenRelation

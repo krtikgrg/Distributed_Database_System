@@ -17,31 +17,30 @@ use zomato_catalog_outlaws;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `Food_Item_Chinese`
+-- Table structure for table `Food_Food_16485534991749241`
 --
 
-DROP TABLE IF EXISTS `Food_Item_Chinese`;
+DROP TABLE IF EXISTS `Food_Food_16485534991749241`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `Food_Item_Chinese` (
-  `Name` varchar(100) NOT NULL,
-  `Type` varchar(100) NOT NULL,
-  `Price` int NOT NULL,
-  `Category` varchar(100) NOT NULL,
-  `FK_Restaurant` varchar(100) NOT NULL,
-  `PK_Custom` varchar(100) NOT NULL,
-  PRIMARY KEY (`PK_Custom`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+CREATE TABLE `Food_Food_16485534991749241` (
+  `Name` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `Type` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `Price` int NOT NULL DEFAULT '0',
+  `Category` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `FK_Restaurant` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `PK_Custom` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `Food_Item_Chinese`
+-- Dumping data for table `Food_Food_16485534991749241`
 --
 
-LOCK TABLES `Food_Item_Chinese` WRITE;
-/*!40000 ALTER TABLE `Food_Item_Chinese` DISABLE KEYS */;
-INSERT INTO `Food_Item_Chinese` VALUES ('Momos','Chinese',40,'Veg','AAJ','AAL'),('Manchurian','Chinese',50,'Veg','AAK','AAM'),('Noodles','Chinese',45,'Veg','AAK','AAN'),('Chowmein','Chinese',70,'Veg','AAK','AAO');
-/*!40000 ALTER TABLE `Food_Item_Chinese` ENABLE KEYS */;
+LOCK TABLES `Food_Food_16485534991749241` WRITE;
+/*!40000 ALTER TABLE `Food_Food_16485534991749241` DISABLE KEYS */;
+INSERT INTO `Food_Food_16485534991749241` VALUES ('Momos','Chinese',40,'Veg','AAJ','AAL'),('Manchurian','Chinese',50,'Veg','AAK','AAM'),('Noodles','Chinese',45,'Veg','AAK','AAN'),('Chowmein','Chinese',70,'Veg','AAK','AAO'),('Special_Shawarma','Indian',100,'Non-Veg','AAI','AAP'),('Cheese_Shawarma','Indian',90,'Veg','AAI','AAQ'),('Honey_Chilli','Indian',120,'Veg','AAK','AAV');
+/*!40000 ALTER TABLE `Food_Food_16485534991749241` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-03-29 12:26:40
+-- Dump completed on 2022-03-29 17:01:51
