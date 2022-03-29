@@ -3,6 +3,7 @@ import sqlparse
 import copy
 from sql_metadata import Parser
 
+from executor import Executor
 from optimization import Optimizer
 from node import Node,ProjectNode,SelectNode,AggregateNode,JoinNode,UnionNode,RelationNode,HavingNode,HFNode,VFNode
 class Query:
@@ -81,6 +82,7 @@ class Query:
         config.logger.log("Parse::Initialising variables to be parsed")
 
         self.optimizer = Optimizer()
+        self.executor = Executor(self.optimizer)
 
         self.relations = []
         self.join_conditions = {
@@ -562,6 +564,10 @@ class Query:
                 fl.write("Operator = "+str(nde.operator)+"<br/>")
                 fl.write("Value = "+str(nde.value)+"<br/>")
             fl.write('<br/>')
+            if nde.site is not None:
+                fl.write("Site is "+str(nde.site)+"<br/>")
+            else:
+                fl.write("Site is None<br/>")
             fl.write(']\n')
 
             if nde.parent is not None:
@@ -1509,3 +1515,11 @@ class Query:
                 q.append(x)
 
         self.pushProjectsVFNode(concernedVF)
+    
+    def execute(self):
+        '''
+        A wrapper function which will in turn call the associated Executor Class instance to execute the query
+        '''
+        config.logger.log("Query::execute")
+
+        self.executor.execute(self.ROOT_TREE_NOT_LOCALIZATION)

@@ -22,6 +22,9 @@ latencies = {}
 transferCoefficients = {}
 costProcessing = 1e-6
 relationCellSizeMap = {}
+catalogName = "zomato_catalog_outlaws"
+paramikoConnections = {}
+tempTables = {}
 # relationColumnMap = {
 #     'r1' : ['a','q','r','s','t'],
 #     'r2' : ['b','l','m','n','o','p'],

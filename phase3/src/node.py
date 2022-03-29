@@ -1,5 +1,7 @@
 import config
 import copy
+import time
+import pandas as pd
 class Node:
     '''
     Class for the node that will be used in tree generation
@@ -13,6 +15,7 @@ class Node:
         }
         self.children = []
         self.useOnlyAttributes = 0
+        self.site = None
 
     def get_attributes(self):
         '''
@@ -44,10 +47,25 @@ class Node:
         self.attributes = attrs
         self.relationAttributeTupleMap = mper
 
+    def getSiteInformation(self):
+        '''
+        Function to extract the site on which a particular relation/fragment is stored
+        This function is only called for HFNode, VFNode or RelationNode
+        '''
+        config.logger.log("Node::getSiteInformation")
+        nme = self.relation #the member relation exists in child class
+
+        if nme in config.Allocation['Fragment_Name']:
+            for i in range(len(config.Allocation['Fragment_Name'])):
+                if config.Allocation['Fragment_Name'][i] == nme:
+                    self.site = config.Allocation['Site'][i]
+                    break
+
     def setUseOnlyAttributes(self):
         '''
         Function to setUseOnlyAttributes as 1
         '''
+        config.logger.log("Node::setUseOnlyAttributes")
         self.useOnlyAttributes = 1
 
 class ProjectNode(Node):
@@ -287,6 +305,38 @@ class HFNode(Node):
         self.attributes = attribs
         self.remove_duplicates()
 
+        self.getSiteInformation()
+
+    def execute(self):
+        '''
+        Function to execute this particular Node
+        '''
+        config.logger.log("HFNode::execute")
+
+        nuRel = self.relation+str(time.time()).replace(".","")
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+";"
+        
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+
+        config.tempTables[nuRel] = self.site
+
+        # return nuRel,self.site
+
+        sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        print()
+        print(A)
+        
+        # nuqry = "create temporary table if not exists "+ config.catalogName+ ".tempo;"
+        # cur = config.globalConnections[self.site+1].cursor()
+        # cur.execute(nuqry)
+        # # config.globalConnections[self.site+1].commit()
+
+        # A.to_sql(name='tempo',con=config.globalConnections[self.site+1],schema=config.catalogName,flavor= 'mysql',index=False)
+        return nuRel,self.site
+
 class VFNode(Node):
     '''
     Class for representing fragments which will be incorporated while localization
@@ -316,7 +366,23 @@ class VFNode(Node):
         }
         self.attributes = dic
         self.remove_duplicates()
+        self.getSiteInformation()
 
+    def execute(self):
+        '''
+        Function to execute this particular Node
+        '''
+        config.logger.log("VFNode::execute")
+
+        nuRel = self.relation+str(time.time()).replace(".","")
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+";"
+        
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+
+        config.tempTables[nuRel] = self.site
+        return nuRel,self.site
 
 class RelationNode(Node):
     '''
@@ -344,3 +410,20 @@ class RelationNode(Node):
         }
         self.attributes = dic
         self.remove_duplicates()
+        self.getSiteInformation()
+
+    def execute(self):
+        '''
+        Function to execute this particular Node
+        '''
+        config.logger.log("RelationNode::execute")
+
+        nuRel = self.relation+str(time.time()).replace(".","")
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+";"
+        
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+
+        config.tempTables[nuRel] = self.site
+        return nuRel,self.site

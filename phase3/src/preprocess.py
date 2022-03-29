@@ -6,6 +6,7 @@ import pymysql
 import logging
 import pandas as pd
 import time
+import paramiko
 
 def createSSHTunnels():
     '''
@@ -29,6 +30,16 @@ def createSSHTunnels():
             remote_bind_address=('127.0.0.1', 3306)
         )
         config.globalTunnels[siteno].start()
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        ssh.connect(ip,port=22,username=uname,password=passw)
+        config.paramikoConnections[siteno] = ssh
+        (a,b,c) = ssh.exec_command('ls')
+        op = b.read()
+        config.debugPrint(str(op))
+
 
 def createMySqlConnections():
     '''
@@ -54,6 +65,7 @@ def closeConnections():
     for x in config.globalTunnels:
         config.globalConnections[x].close()
         config.globalTunnels[x].close()
+        config.paramikoConnections[x].close()
 
 def getSchema(toInp):
     '''
@@ -160,6 +172,7 @@ def getEntrySizes():
         siteno = config.Allocation['Site'][i]
 
         sz = pd.read_sql_query(sql+frag_name+"';",config.globalConnections[siteno])
+        # print(list(sz.columns))
         cols = sz['COLUMN_NAME']
         datype = sz['DATA_TYPE']
         sszz = sz['CHARACTER_MAXIMUM_LENGTH']
@@ -202,7 +215,7 @@ def getEntrySizes():
     
     for x in config.relationColumnMap:
         if x not in config.relationCellSizeMap:
-            config.relationCellSizeMap[x] = copt.deepcopy(mper[x])
+            config.relationCellSizeMap[x] = copy.deepcopy(mper[x])
 
     config.debugPrint(config.relationCellSizeMap)
 
@@ -218,3 +231,23 @@ def computeTransferCoefficients():
             summ += y
         summ /= len(config.latencies[x])
         config.transferCoefficients[x] = summ
+
+def deleteTempFilesTables():
+    '''
+    Function to delete the temporary files and tables which were created along the execution of the command
+    '''
+    config.logger.log("preprocess::deleteTempFilesTables")
+    #temp file is only dump.txt
+
+    command = "rm ./Outlaws/dump.txt"
+    for x in config.paramikoConnections:
+        config.paramikoConnections[x].exec_command(command)
+
+    for x in config.tempTables:
+        tab_name = x
+        siteno = config.tempTables[x]
+
+        sqlQuery = "drop table "+config.catalogName+"."+tab_name+";"
+        cur = config.globalConnections[siteno].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[siteno].commit()

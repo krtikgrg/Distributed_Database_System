@@ -3,10 +3,12 @@ import sqlparse
 
 import config
 
+import time
+from utility import copyFromServer, copyToServer, dumpTable, importTable
 from input import TakeInput
 from trace import Logger
 from query import Query
-from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationLengths, createSSHTunnels, createMySqlConnections, closeConnections, computeTransferCoefficients, getEntrySizes
+from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationLengths, createSSHTunnels, createMySqlConnections, closeConnections, computeTransferCoefficients, getEntrySizes, deleteTempFilesTables
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
@@ -40,6 +42,7 @@ while(True):
         config.debugPrint(sqlParsed)
 
         if sqlParsed == 'EXIT' or sqlParsed == 'quit':
+            deleteTempFilesTables()
             closeConnections()
             config.exitShell()
 
@@ -47,18 +50,18 @@ while(True):
         config.parsedQuery.parse(sqlParsed)
 
         config.parsedQuery.generateTree()
-        config.parsedQuery.PrintTree('./original.md')
+        # config.parsedQuery.PrintTree('./original.md')
         config.parsedQuery.optimizeTreeSelection()
-        config.parsedQuery.PrintTree('./selection_optimized.md')
+        # config.parsedQuery.PrintTree('./selection_optimized.md')
         config.parsedQuery.optimizeTreeProjection() 
-        config.parsedQuery.PrintTree('./optimized.md') 
+        # config.parsedQuery.PrintTree('./optimized.md') 
         config.parsedQuery.replaceRelationsWithFragments()
-        config.parsedQuery.PrintTree('./fragmented.md')
+        # config.parsedQuery.PrintTree('./fragmented.md')
         config.parsedQuery.pushSelectsFragmented()
         if config.parsedQuery.emptyResult == 1:
             continue
-        config.debugPrint("Okay")
-        config.parsedQuery.PrintTree('./fragmented_select.md')
+        # config.parsedQuery.PrintTree('./fragmented_select.md')
 
         config.parsedQuery.pushProjectsFragmented()
         config.parsedQuery.PrintTree('./complete.md')
+        config.parsedQuery.execute()
