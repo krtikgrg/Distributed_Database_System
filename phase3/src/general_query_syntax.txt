@@ -143,3 +143,5 @@ above is number of rows in a relation, for HF get this value for all HFs and the
 same for DHF and for VF pick any one and get that value and this is it
 
 when copying a table, the copied table needs to be added in the tempTables for the new site too
+
+Update DB Schema

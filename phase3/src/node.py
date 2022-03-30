@@ -423,7 +423,7 @@ class JoinNode(Node):
 
                 ojoiattr = table1Name[:5]+str(time.time()).replace(".","")
                 sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r1_attribute +" FROM "+config.catalogName+"."+table1Name+";"
-                # print(sqlQuery)
+                # print(1)
 
                 cur1 = config.globalConnections[table1Site].cursor()
                 cur1.execute(sqlQuery)
@@ -438,7 +438,7 @@ class JoinNode(Node):
 
                 trelrows = table2Name[:5]+str(time.time()).replace(".","")
                 sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(1,table2Name,self.r2_attribute) + " FROM "+config.catalogName+"."+table2Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r1_attribute+";"
-                # print(sqlQuery)
+                # print(2)
                 cur2 = config.globalConnections[table2Site].cursor()
                 cur2.execute(sqlQuery)
                 config.globalConnections[table2Site].commit()
@@ -458,7 +458,7 @@ class JoinNode(Node):
                     temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2_attribute+";"
                 
                 sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
-                # print(sqlQuery)
+                # print(3)
                 
                 cur1.execute(sqlQuery)
                 config.globalConnections[table1Site].commit()
@@ -466,7 +466,7 @@ class JoinNode(Node):
 
                 # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
                 # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
-                # print()
+                # print(4)
                 # print(A)
 
                 self.lenRelation = table1Leng*table2Leng*config.joinSelectivities[(self.r1,self.r2)]
@@ -483,6 +483,7 @@ class JoinNode(Node):
                 ojoiattr = table2Name[:5]+str(time.time()).replace(".","")
                 sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r2_attribute +" FROM "+config.catalogName+"."+table2Name+";"
                 # print(sqlQuery)
+                # print(5)
 
                 cur2 = config.globalConnections[table2Site].cursor()
                 cur2.execute(sqlQuery)
@@ -498,6 +499,7 @@ class JoinNode(Node):
                 trelrows = table1Name[:5]+str(time.time()).replace(".","")
                 sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(0,table1Name,self.r1_attribute) + " FROM "+config.catalogName+"."+table1Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r2_attribute+";"
                 # print(sqlQuery)
+                # print(6)
                 cur1 = config.globalConnections[table1Site].cursor()
                 cur1.execute(sqlQuery)
                 config.globalConnections[table1Site].commit()
@@ -518,6 +520,7 @@ class JoinNode(Node):
                 
                 sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
                 # print(sqlQuery)
+                # print(7)
                 
                 cur2.execute(sqlQuery)
                 config.globalConnections[table2Site].commit()
@@ -525,7 +528,7 @@ class JoinNode(Node):
 
                 # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
                 # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
-                # print()
+                # print(8)
                 # print(A)
 
                 self.lenRelation = table1Leng*table2Leng*config.joinSelectivities[(self.r2,self.r1)]
