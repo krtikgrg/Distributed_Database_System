@@ -1,6 +1,7 @@
 import config
 import sqlparse
 import copy
+import pandas as pd
 from sql_metadata import Parser
 
 from executor import Executor
@@ -1524,4 +1525,10 @@ class Query:
         '''
         config.logger.log("Query::execute")
 
-        self.executor.execute(self.ROOT_TREE_NOT_LOCALIZATION)
+        nuRel,site,leng = self.executor.execute(self.ROOT_TREE_NOT_LOCALIZATION)
+
+        sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        A = pd.read_sql_query(sqlQuery,config.globalConnections[site])
+        print()
+        print(A)
+        print()

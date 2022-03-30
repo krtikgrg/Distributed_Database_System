@@ -38,3 +38,9 @@ AAF AAK 70 AAX
 AAE AAH 100 AAY
 
 sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.215:~/Outlaws/ && sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.214:~/Outlaws/ && sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.213:~/Outlaws/ && sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.212:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site1.sql user@10.3.5.215:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site2.sql user@10.3.5.214:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site3.sql user@10.3.5.213:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site4.sql user@10.3.5.212:~/Outlaws/
+
+create temporary table A select sum(fare) as tot_fare, user_id from RIDES group by user_id;
+create temporary table B select city_id,user_id,tot_fare from A inner join USERS ON USERS.id=A.user_id;
+create temporary table C select city_id as cid,sum(tot_fare) as fare from B group_by city_id;
+create temporary table D select name,fare from CITIES inner join C on CITIES.city_id=C.cid;
+select * from D;

@@ -35,5 +35,5 @@ class Executor:
         '''
         config.logger.log("Executor::execute")
         
-        self.dfs(root)
+        return self.dfs(root)
 

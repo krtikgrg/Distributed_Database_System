@@ -111,9 +111,18 @@ class ProjectNode(Node):
         config.logger.log("ProjectNode::generateProjectClause")
 
         clause = ""
-        for i in range(len(self.to_be_projected['attribute'])):
-            clause = clause + self.to_be_projected['attribute'][i]+" , "
-        clause = clause[:-3]
+
+        if 'aggregate_operator' in self.to_be_projected and len(self.to_be_projected['aggregate_operator'])>0:
+            for i in range(len(self.to_be_projected['attribute'])):
+                if len(self.to_be_projected['aggregate_operator'][i]) == 0:
+                    clause = clause + self.to_be_projected['attribute'][i]+" , "
+                else:
+                    clause = clause + self.to_be_projected['aggregate_operator'][i] + '_' + self.to_be_projected['attribute'][i] + " , "
+            clause = clause[:-3]
+        else:
+            for i in range(len(self.to_be_projected['attribute'])):
+                clause = clause + self.to_be_projected['attribute'][i]+" , "
+            clause = clause[:-3]
         return clause
 
     def execute(self,re_vals):
