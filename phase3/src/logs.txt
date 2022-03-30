@@ -107,6 +107,17 @@ VFNode::execute
 Executor::dfs
 VFNode::execute
 JoinNode::execute
+Optimizer::getDirectionJoin
+utility::dumpTable
+utility::copyFromServer
+utility::copyToServer
+utility::importTable
+JoinNode::getChildColumns
+Node::get_attributes
+utility::dumpTable
+utility::copyFromServer
+utility::copyToServer
+utility::importTable
 JoinNode::getColumns
 preprocess::deleteTempFilesTables
 TakeInput::inputQuery

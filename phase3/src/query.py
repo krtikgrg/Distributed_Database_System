@@ -159,7 +159,7 @@ class Query:
             self.relations.append(query[itr][-1])
             itr += 1
 
-        # self.relations = ['User']
+        self.relations = ['User']
 
         #Now lets extract columns from select keyword
         config.logger.log("Parse::Processing SELECT clause")

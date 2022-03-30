@@ -364,6 +364,22 @@ class JoinNode(Node):
         clause = clause[:-3]
         return clause
 
+    def getChildColumns(self,index,tname,jattr):
+        '''
+        Fucntion to get columns of the child on index 
+        '''
+        config.logger.log("JoinNode::getChildColumns")
+
+        clause = ""
+        attrs = self.children[index].get_attributes()
+        for x in range(len(attrs['attribute'])):
+            if attrs['attribute'][x] != jattr:
+                clause = clause + attrs['attribute'][x]+" , "
+            else:
+                clause = clause+tname+"."+attrs['attribute'][x]+" , "
+        clause = clause[:-3]
+        return clause
+
     def execute(self,re_vals):
         '''
         Function to execute the join at this particular JoinNode
@@ -393,7 +409,6 @@ class JoinNode(Node):
             cur.execute(sqlQuery)
             config.globalConnections[self.site].commit()
             config.tempTables[nuRel] = [self.site]
-
             # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
             # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
             # print()
@@ -401,18 +416,126 @@ class JoinNode(Node):
             return nuRel,self.site,self.lenRelation
         else:
             direction = config.parsedQuery.optimizer.getDirectionJoin(re_vals,self.r1,self.r1_attribute,self.r2,self.r2_attribute)
+            # direction = 1
             if direction == 0:
                 #move 2 to 1
                 self.site = table1Site
 
-                #execute
+                ojoiattr = table1Name[:5]+str(time.time()).replace(".","")
+                sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r1_attribute +" FROM "+config.catalogName+"."+table1Name+";"
+                # print(sqlQuery)
 
+                cur1 = config.globalConnections[table1Site].cursor()
+                cur1.execute(sqlQuery)
+                config.globalConnections[table1Site].commit()
+                config.tempTables[ojoiattr] = [table1Site]
+
+                dumpTable(ojoiattr,table1Site)
+                copyFromServer(table1Site)
+                copyToServer(table2Site)
+                importTable(table2Site)
+                config.tempTables[ojoiattr].append(table2Site)
+
+                trelrows = table2Name[:5]+str(time.time()).replace(".","")
+                sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(1,table2Name,self.r2_attribute) + " FROM "+config.catalogName+"."+table2Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r1_attribute+";"
+                # print(sqlQuery)
+                cur2 = config.globalConnections[table2Site].cursor()
+                cur2.execute(sqlQuery)
+                config.globalConnections[table2Site].commit()
+                config.tempTables[trelrows] = [table2Site]
+
+                dumpTable(trelrows,table2Site)
+                copyFromServer(table2Site)
+                copyToServer(table1Site)
+                importTable(table1Site)
+                config.tempTables[trelrows].append(table1Site)
+
+                nuRel = table1Name[:5]+table2Name[:5]+str(time.time()).replace(".","")
+
+                if self.r1_attribute == self.r2_attribute:
+                    temp = " SELECT "+self.getColumns(table1Name) +" FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2_attribute+";"
+                else:
+                    temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2_attribute+";"
+                
+                sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
+                # print(sqlQuery)
+                
+                cur1.execute(sqlQuery)
+                config.globalConnections[table1Site].commit()
+                config.tempTables[nuRel] = [table1Site]
+
+                # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+                # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+                # print()
+                # print(A)
+
+                self.lenRelation = table1Leng*table2Leng*config.joinSelectivities[(self.r1,self.r2)]
+
+                #check other lenRelation too
+                if self.lenRelation == 0:
+                    self.lenRelation=1
+
+                return nuRel,self.site,self.lenRelation   
             else:
                 #move 1 to 2
                 self.site = table2Site
 
-                #execute
+                ojoiattr = table2Name[:5]+str(time.time()).replace(".","")
+                sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r2_attribute +" FROM "+config.catalogName+"."+table2Name+";"
+                # print(sqlQuery)
 
+                cur2 = config.globalConnections[table2Site].cursor()
+                cur2.execute(sqlQuery)
+                config.globalConnections[table2Site].commit()
+                config.tempTables[ojoiattr] = [table2Site]
+
+                dumpTable(ojoiattr,table2Site)
+                copyFromServer(table2Site)
+                copyToServer(table1Site)
+                importTable(table1Site)
+                config.tempTables[ojoiattr].append(table1Site)
+
+                trelrows = table1Name[:5]+str(time.time()).replace(".","")
+                sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(0,table1Name,self.r1_attribute) + " FROM "+config.catalogName+"."+table1Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r2_attribute+";"
+                # print(sqlQuery)
+                cur1 = config.globalConnections[table1Site].cursor()
+                cur1.execute(sqlQuery)
+                config.globalConnections[table1Site].commit()
+                config.tempTables[trelrows] = [table1Site]
+
+                dumpTable(trelrows,table1Site)
+                copyFromServer(table1Site)
+                copyToServer(table2Site)
+                importTable(table2Site)
+                config.tempTables[trelrows].append(table2Site)
+
+                nuRel = table2Name[:5]+table1Name[:5]+str(time.time()).replace(".","")
+
+                if self.r1_attribute == self.r2_attribute:
+                    temp = " SELECT "+self.getColumns(table2Name) +" FROM "+config.catalogName+"."+table2Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+trelrows+"."+self.r1_attribute+";"
+                else:
+                    temp = " SELECT * FROM "+config.catalogName+"."+table2Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+trelrows+"."+self.r1_attribute+";"
+                
+                sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
+                # print(sqlQuery)
+                
+                cur2.execute(sqlQuery)
+                config.globalConnections[table2Site].commit()
+                config.tempTables[nuRel] = [table2Site]
+
+                # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+                # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+                # print()
+                # print(A)
+
+                self.lenRelation = table1Leng*table2Leng*config.joinSelectivities[(self.r2,self.r1)]
+
+                #check other lenRelation too
+                if self.lenRelation == 0:
+                    self.lenRelation=1
+
+                return nuRel,self.site,self.lenRelation
+                #execute
 
 class UnionNode(Node):
     '''
