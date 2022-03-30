@@ -318,6 +318,68 @@ class AggregateNode(Node):
         self.attributes['relation'] += rel
         self.remove_duplicates()
 
+    def getGroupByClause(self):
+        '''
+        Function to design the list of columns which are to appear in Group By 
+        '''
+        config.logger.log("AggregateNode::getGroupByClause")
+
+        clause = ""
+        for x in range(len(self.group_by_attributes['attribute'])):
+            clause = clause + self.group_by_attributes['attribute'][x] + " , "
+        clause = clause[:-3]
+        return clause
+    
+    def getAggregateSelectClause(self):
+        '''
+        Function to design the list of columns which are to appear in select clause
+        '''
+        config.logger.log("AggregateNode::getAggregateSelectClause")
+
+        clause = ""
+        for x in range(len(self.aggregates['attribute'])):
+            clause = clause + self.aggregates['operator'][x]+"("+self.aggregates['attribute'][x]+") , "
+        if self.group_by_exist:
+            for x in range(len(self.group_by_attributes['attribute'])):
+                clause = clause + self.group_by_attributes['attribute'][x] + " , "
+        clause = clause[:-3]
+        return clause
+
+    def execute(self,re_vals):
+        '''
+        Function to calculate the result for this aggregate node,
+        Here aggregates and Group Bys are to be processed
+        '''
+        config.logger.log("AggregateNode::execute")
+
+        tname = re_vals[0][0]
+        tsite = re_vals[0][1]
+        tlen = re_vals[0][2]
+
+        self.site = tsite
+        self.lenRelation = tlen
+        nuRel = tname[:5]+str(time.time()).replace(".","")
+
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " SELECT "+self.getAggregateSelectClause()+" FROM "+config.catalogName+"."+tname
+        if self.group_by_exist:
+            sqlQuery = sqlQuery + " GROUP BY "+self.getGroupByClause()+";"
+        else:
+            sqlQuery = sqlQuery + ";"
+
+        print(sqlQuery)
+
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+        config.tempTables[nuRel] = [self.site]
+
+        # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        # print()
+        # print(A)
+
+        return nuRel,self.site,self.lenRelation
+
 class JoinNode(Node):
     '''
     Class for the join node that will be used in tree generation
