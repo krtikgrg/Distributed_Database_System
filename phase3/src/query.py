@@ -548,7 +548,7 @@ class Query:
             for x in nde.attributes:
                 fl.write(str(x)+" = ")
                 for temp in nde.attributes[x]:
-                    fl.write(str(temp)+" ")
+                    fl.write(str(temp).replace('(',' ').replace(')','')+" ")
                 fl.write('<br/>')
             fl.write('<br/>')
             if tpe == "node.SelectNode":

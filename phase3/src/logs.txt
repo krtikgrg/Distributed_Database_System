@@ -47,6 +47,7 @@ Query::getAttrRelAoper
 Parse::Processing GROUP BY clause
 Query::getAttrRelAoper
 Parse::Processing HAVING clause
+Query::getAttrRelAoper
 Parse::Processing WHERE clause
 config::debugPrint
 config::debugPrint
@@ -77,6 +78,10 @@ Node::remove_duplicates
 AggregateNode::Constructor
 Node::SuperConstructor
 AggregateNode::generate_attributes_list
+Node::remove_duplicates
+HavingNode::Constructor
+Node::SuperConstructor
+HavingNode::generate_attributes_list
 Node::get_attributes
 Node::remove_duplicates
 ProjectNode::Constructor
@@ -161,6 +166,7 @@ Executor::dfs
 Executor::dfs
 Executor::dfs
 Executor::dfs
+Executor::dfs
 HFNode::execute
 ProjectNode::execute
 ProjectNode::generateProjectClause
@@ -192,6 +198,8 @@ utility::importTable
 AggregateNode::execute
 AggregateNode::getAggregateSelectClause
 AggregateNode::getGroupByClause
+HavingNode::execute
+HavingNode::generateWhereClause
 ProjectNode::execute
 ProjectNode::generateProjectClause
 config::debugPrint

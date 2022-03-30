@@ -17,13 +17,13 @@ use zomato_catalog_outlaws;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `Food_Food_16486469767165804`
+-- Table structure for table `Food_Food_1648656841670142`
 --
 
-DROP TABLE IF EXISTS `Food_Food_16486469767165804`;
+DROP TABLE IF EXISTS `Food_Food_1648656841670142`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `Food_Food_16486469767165804` (
+CREATE TABLE `Food_Food_1648656841670142` (
   `Name` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT '',
   `Price` int NOT NULL DEFAULT '0',
   `Category` varchar(100) CHARACTER SET utf8 NOT NULL DEFAULT ''
@@ -31,13 +31,13 @@ CREATE TABLE `Food_Food_16486469767165804` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `Food_Food_16486469767165804`
+-- Dumping data for table `Food_Food_1648656841670142`
 --
 
-LOCK TABLES `Food_Food_16486469767165804` WRITE;
-/*!40000 ALTER TABLE `Food_Food_16486469767165804` DISABLE KEYS */;
-INSERT INTO `Food_Food_16486469767165804` VALUES ('Momos',40,'Veg'),('Manchurian',50,'Veg'),('Noodles',45,'Veg'),('Chowmein',70,'Veg'),('Special_Shawarma',100,'Non-Veg'),('Cheese_Shawarma',90,'Veg'),('Honey_Chilli',120,'Veg');
-/*!40000 ALTER TABLE `Food_Food_16486469767165804` ENABLE KEYS */;
+LOCK TABLES `Food_Food_1648656841670142` WRITE;
+/*!40000 ALTER TABLE `Food_Food_1648656841670142` DISABLE KEYS */;
+INSERT INTO `Food_Food_1648656841670142` VALUES ('Momos',40,'Veg'),('Manchurian',50,'Veg'),('Noodles',45,'Veg'),('Chowmein',70,'Veg'),('Special_Shawarma',100,'Non-Veg'),('Cheese_Shawarma',90,'Veg'),('Honey_Chilli',120,'Veg');
+/*!40000 ALTER TABLE `Food_Food_1648656841670142` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +49,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-03-30 18:59:47
+-- Dump completed on 2022-03-30 21:44:12

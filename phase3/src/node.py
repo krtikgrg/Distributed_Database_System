@@ -201,7 +201,7 @@ class SelectNode(Node):
         '''
         Function to add all the select conditions in the where clause
         '''
-        config.logger.log("Node::generateWhereClause")
+        config.logger.log("SelectNode::generateWhereClause")
 
         clause = ""
         for j in range(len(self.conditions)):
@@ -272,6 +272,56 @@ class HavingNode(Node):
         self.attributes = self.children[0].get_attributes()
         self.remove_duplicates()
 
+    def generateWhereClause(self):
+        '''
+        Function to add all the select conditions in the having clause
+        '''
+        config.logger.log("HavingNode::generateWhereClause")
+
+        clause = ""
+        for j in range(len(self.conditions)):
+            current = "("
+            for i in range(len(self.conditions[j]['attribute'])):
+                current = current+self.conditions[j]['aggregate_operator'][i]+"_"+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
+            current = current[:-4]
+            current += ")"
+            clause += current
+            clause += " AND "
+        
+        clause = clause[:-5]
+        return clause
+
+    def execute(self,re_vals):
+        '''
+        Function to execute the having node conditions
+        '''
+        config.logger.log("HavingNode::execute")
+
+        tname = re_vals[0][0]
+        tsite = re_vals[0][1]
+        tlen = re_vals[0][2]
+
+        self.relation = tname
+        self.site = tsite
+        self.lenRelation = tlen
+
+        nuRel = tname[:5]+str(time.time()).replace(".","")
+        
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+" where "+ self.generateWhereClause() +";"
+        # print(sqlQuery)
+
+        cur = config.globalConnections[self.site].cursor()
+        cur.execute(sqlQuery)
+        config.globalConnections[self.site].commit()
+
+        config.tempTables[nuRel] = [self.site]
+
+        # sqlQuery = "select * from "+config.catalogName+"."+nuRel+";"
+        # A = pd.read_sql_query(sqlQuery,config.globalConnections[self.site])
+        # print()
+        # print(A)
+        return nuRel,self.site,self.lenRelation
+
 class AggregateNode(Node):
     '''
     Class for the aggregate node that will be used in tree generation
@@ -308,12 +358,20 @@ class AggregateNode(Node):
 
         config.logger.log("AggregateNode::generate_attributes_list")
 
-        self.attributes = self.children[0].get_attributes()
+        # self.attributes = self.children[0].get_attributes()
+        self.attributes = {
+            'attribute':[],
+            'relation':[]
+        }
         attr = []
         rel = []
         for i in range(len(self.aggregates['attribute'])):
-            attr.append(self.aggregates['operator'][i] + '_' + self.aggregates['relation'][i] + "_" + self.aggregates['attribute'][i])
+            attr.append(self.aggregates['operator'][i] + '('  + self.aggregates['attribute'][i]+")")
             rel.append(self.aggregates['relation'][i])
+        if self.group_by_exist:
+            for i in range(len(self.group_by_attributes['attribute'])):
+                attr.append(self.group_by_attributes['attribute'][i])
+                rel.append(self.group_by_attributes['relation'][i])
         self.attributes['attribute'] += attr
         self.attributes['relation'] += rel
         self.remove_duplicates()
@@ -325,8 +383,11 @@ class AggregateNode(Node):
         config.logger.log("AggregateNode::getGroupByClause")
 
         clause = ""
+        tempo = set([])
         for x in range(len(self.group_by_attributes['attribute'])):
-            clause = clause + self.group_by_attributes['attribute'][x] + " , "
+            if self.group_by_attributes['attribute'][x] not in tempo:
+                clause = clause + self.group_by_attributes['attribute'][x] + " , "
+                tempo.add(self.group_by_attributes['attribute'][x])
         clause = clause[:-3]
         return clause
     
@@ -337,11 +398,19 @@ class AggregateNode(Node):
         config.logger.log("AggregateNode::getAggregateSelectClause")
 
         clause = ""
+        tempo = set([])
         for x in range(len(self.aggregates['attribute'])):
-            clause = clause + self.aggregates['operator'][x]+"("+self.aggregates['attribute'][x]+") , "
+            rel = self.aggregates['operator'][x]+"("+self.aggregates['attribute'][x]+") as "+self.aggregates['operator'][x]+"_"+self.aggregates['attribute'][x]
+            if rel not in tempo:
+                clause = clause + rel +" , "
+                tempo.add(rel)
         if self.group_by_exist:
+            tempo = set([])
             for x in range(len(self.group_by_attributes['attribute'])):
-                clause = clause + self.group_by_attributes['attribute'][x] + " , "
+                if self.group_by_attributes['attribute'][x] not in tempo:
+                    clause = clause + self.group_by_attributes['attribute'][x] + " , "
+                    tempo.add(self.group_by_attributes['attribute'][x])
+
         clause = clause[:-3]
         return clause
 
@@ -366,7 +435,7 @@ class AggregateNode(Node):
         else:
             sqlQuery = sqlQuery + ";"
 
-        print(sqlQuery)
+        # print(sqlQuery)
 
         cur = config.globalConnections[self.site].cursor()
         cur.execute(sqlQuery)
