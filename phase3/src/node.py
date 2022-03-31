@@ -113,15 +113,24 @@ class ProjectNode(Node):
         clause = ""
 
         if 'aggregate_operator' in self.to_be_projected and len(self.to_be_projected['aggregate_operator'])>0:
+            tempo = set([])
             for i in range(len(self.to_be_projected['attribute'])):
                 if len(self.to_be_projected['aggregate_operator'][i]) == 0:
-                    clause = clause + self.to_be_projected['attribute'][i]+" , "
+                    if self.to_be_projected['attribute'][i] not in tempo:
+                        clause = clause + self.to_be_projected['attribute'][i]+" , "
+                        tempo.add(self.to_be_projected['attribute'][i])
                 else:
-                    clause = clause + self.to_be_projected['aggregate_operator'][i] + '_' + self.to_be_projected['attribute'][i] + " , "
+                    temp = self.to_be_projected['aggregate_operator'][i] + '_' + self.to_be_projected['attribute'][i]
+                    if temp not in tempo:
+                        clause = clause + temp + " , "
+                        tempo.add(temp)
             clause = clause[:-3]
         else:
+            tempo = set([])
             for i in range(len(self.to_be_projected['attribute'])):
-                clause = clause + self.to_be_projected['attribute'][i]+" , "
+                if self.to_be_projected['attribute'][i] not in tempo:
+                    clause = clause + self.to_be_projected['attribute'][i]+" , "
+                    tempo.add(self.to_be_projected['attribute'][i])
             clause = clause[:-3]
         return clause
 
@@ -138,7 +147,7 @@ class ProjectNode(Node):
         nuRel = self.relation[:5]+str(time.time()).replace(".","")
         sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select "+self.generateProjectClause()+" from " + config.catalogName + "." +self.relation+";"
         
-        config.debugPrint("To be Executed :: "+sqlQuery)
+        # print("To be Executed :: "+sqlQuery)
 
         cur = config.globalConnections[self.site].cursor()
         cur.execute(sqlQuery)

@@ -51,6 +51,7 @@ class Query:
             #######then chack if that rel present in self.relations
             #######giving general value as "TO_BE_EXTRACTED for now"
             rel = None
+            # col = 'Type'
             # config.debugPrint("K"+col)
             for x in config.relationColumnMap:
                 # config.debugPrint(x)
@@ -1317,7 +1318,7 @@ class Query:
                 par = father.parent
                 if par is not None:
                     idxfnd = 0
-                    for idx in len(par.children):
+                    for idx in range(len(par.children)):
                         if par.children[idx] == father:
                             idxfnd = idx
                             break
