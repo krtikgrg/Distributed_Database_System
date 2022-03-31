@@ -216,7 +216,10 @@ class SelectNode(Node):
         for j in range(len(self.conditions)):
             current = "("
             for i in range(len(self.conditions[j]['attribute'])):
-                current = current+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
+                if isinstance(self.conditions[j]['value'][i],int):
+                    current = current+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
+                else:
+                    current = current+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+"'"+str(self.conditions[j]['value'][i])+"'"+" OR "
             current = current[:-4]
             current += ")"
             clause += current
@@ -238,7 +241,7 @@ class SelectNode(Node):
 
         nuRel = self.relation[:5]+str(time.time()).replace(".","")
         sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+" where "+ self.generateWhereClause() +";"
-        
+        # print(sqlQuery)
         config.debugPrint("To be Executed :: "+sqlQuery)
 
         cur = config.globalConnections[self.site].cursor()

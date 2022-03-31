@@ -44,3 +44,5 @@ create temporary table B select city_id,user_id,tot_fare from A inner join USERS
 create temporary table C select city_id as cid,sum(tot_fare) as fare from B group_by city_id;
 create temporary table D select name,fare from CITIES inner join C on CITIES.city_id=C.cid;
 select * from D;
+
+Select Count(Name), Sum(Price) from Food_Item where (Price>50) group by FK_Restaurant, Category Having (Sum(Price)>0);

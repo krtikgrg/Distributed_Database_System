@@ -35,6 +35,7 @@ while(True):
     queries = sqlparse.split(query)
 
     for query in queries:
+        STRT = time.time()
         sqlParsed = sqlparse.format(query, reindent=True, keyword_case='upper')
         sqlParsed = sqlParsed[:-1] # removing semi-colon here
         sqlParsed = sqlParsed.strip()
@@ -65,4 +66,6 @@ while(True):
         config.parsedQuery.pushProjectsFragmented()
         config.parsedQuery.PrintTree('./complete.md')
         config.parsedQuery.execute()
+        END = time.time()
+        print("Time Taken (In Seconds):",END-STRT)
         deleteTempFilesTables()

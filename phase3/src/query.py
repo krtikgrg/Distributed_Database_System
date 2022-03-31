@@ -363,6 +363,7 @@ class Query:
                     value = int(remaining)
                 elif remaining.find('\'') != -1:
                     value = remaining[1:-1]
+                    # value = remaining
                 else:
                     isJoin = 1
                     self.HAVE_JOIN = 1
@@ -1053,6 +1054,9 @@ class Query:
         Function to check if a condition is false or true logically
         '''
         config.logger.log("Query::checkCondition")
+
+        if type(cval) != type(val):
+            return 1
 
         if cattr != attr:
             return 1
