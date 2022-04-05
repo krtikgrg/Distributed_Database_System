@@ -51,6 +51,7 @@ class Query:
             #######then chack if that rel present in self.relations
             #######giving general value as "TO_BE_EXTRACTED for now"
             rel = None
+            ctr = 0
             # col = 'Type'
             # config.debugPrint("K"+col)
             for x in config.relationColumnMap:
@@ -58,10 +59,12 @@ class Query:
                 if col in config.relationColumnMap[x]:
                     if x in self.relations:
                         rel = x
-                        break
+                        ctr += 1
             if rel is None:
                 # config.debugPrint(config.relationColumnMap)
                 config.errorPrint("No relation contained the specified column "+col)
+            if ctr > 1:
+                config.errorPrint("More than 1 relation contained the specified column "+col)
             attr = col
 
         if haveaggr == 1:
@@ -708,7 +711,7 @@ class Query:
             par = father.parent
             if par is not None:
                 idxfnd = 0
-                for idx in len(par.children):
+                for idx in range(len(par.children)):
                     if par.children[idx] == father:
                         idxfnd = idx
                         break
