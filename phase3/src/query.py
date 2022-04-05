@@ -967,7 +967,7 @@ class Query:
                         child.setUseOnlyAttributes()
                         leaveNodes[0].parent = child
 
-                        for idx in range(1,len(leaveNodes)-1):
+                        for i in range(1,len(leaveNodes)-1):
                             child.children.append(leaveNodes[i])
                             leaveNodes[i].parent = child
                             child.generate_attributes_list()
