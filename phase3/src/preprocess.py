@@ -29,6 +29,7 @@ def createSSHTunnels():
             ssh_username=uname,
             ssh_password=passw,
             remote_bind_address=('127.0.0.1', 3306)
+            # remote_bind_address=('127.0.0.1', 3600)
         )
         config.globalTunnels[siteno].start()
 
@@ -194,7 +195,7 @@ def getEntrySizes():
         if tab_name not in config.relationCellSizeMap:
             config.relationCellSizeMap[tab_name] = {}
             for x in mper[frag_name]:
-                config.relationCellSizeMap[tab_name][x] = mper[frag_name][x]
+                config.relationCellSizeMap[tab_name][tab_name+'_'+x] = mper[frag_name][x]
         
     for i in range(len(config.Vertical_Fragments['Fragment_Name'])):
         frag_name = config.Vertical_Fragments['Fragment_Name'][i]
@@ -203,7 +204,7 @@ def getEntrySizes():
         if tab_name not in config.relationCellSizeMap:
             config.relationCellSizeMap[tab_name] = {}
         for x in mper[frag_name]:
-            config.relationCellSizeMap[tab_name][x] = mper[frag_name][x]
+            config.relationCellSizeMap[tab_name][tab_name+'_'+x] = mper[frag_name][x]
 
     for i in range(len(config.Derived_Horizontal_Fragments['Fragment_Name'])):
         frag_name = config.Derived_Horizontal_Fragments['Fragment_Name'][i]
@@ -212,11 +213,13 @@ def getEntrySizes():
         if tab_name not in config.relationCellSizeMap:
             config.relationCellSizeMap[tab_name] = {}
             for x in mper[frag_name]:
-                config.relationCellSizeMap[tab_name][x] = mper[frag_name][x]
+                config.relationCellSizeMap[tab_name][tab_name+'_'+x] = mper[frag_name][x]
     
     for x in config.relationColumnMap:
         if x not in config.relationCellSizeMap:
-            config.relationCellSizeMap[x] = copy.deepcopy(mper[x])
+            config.relationCellSizeMap[x] = {}
+            for col in mper[x]:
+                config.relationCellSizeMap[x][x+'_'+col] = mper[x][col]
 
     config.debugPrint(config.relationCellSizeMap)
 

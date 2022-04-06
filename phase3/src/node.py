@@ -91,6 +91,18 @@ class Node:
         config.logger.log("Node::setUseOnlyAttributes")
         self.useOnlyAttributes = 1
 
+    def getColumnClause(self):
+        '''
+        Function to write column as relation_column
+        '''
+        config.logger.log("Node::getColumnClause")
+
+        clause = ''
+        for i in range(len(self.attributes['attribute'])):
+            clause = clause + self.attributes['attribute'][i]+' AS '+self.attributes['relation'][i]+'_'+self.attributes['attribute'][i] + ' , '
+        clause = clause[:-3]
+        return clause
+
 class ProjectNode(Node):
     '''
     Class for the project node that will be used in tree generation
@@ -142,13 +154,14 @@ class ProjectNode(Node):
                     ### check the tuple (self.to_be_projected['relation'][i],self.to_be_projected['attribute'][i]) to be non existent in tempo
                     ### add the above tuple in tempo
                     ### add self.to_be_projected['relation'][i]+'_' to self.to_be_projected['attribute'][i]
-                    if self.to_be_projected['attribute'][i] not in tempo:
-                        clause = clause + self.to_be_projected['attribute'][i]+" , "
-                        tempo.add(self.to_be_projected['attribute'][i])
+                    temp = self.to_be_projected['relation'][i]+'_'+self.to_be_projected['attribute'][i]
+                    if temp not in tempo:
+                        clause = clause + temp+" , "
+                        tempo.add(temp)
                 else:
                     ### add self.to_be_projected['relation'][i] in between self.to_be_projected['aggregate_operator'][i] + '_' + self.to_be_projected['attribute'][i]
                     ### then proceed with same
-                    temp = self.to_be_projected['aggregate_operator'][i] + '_' + self.to_be_projected['attribute'][i]
+                    temp = self.to_be_projected['aggregate_operator'][i] + '_' +self.to_be_projected['relation'][i] + '_' + self.to_be_projected['attribute'][i]
                     if temp not in tempo:
                         clause = clause + temp + " , "
                         tempo.add(temp)
@@ -163,9 +176,10 @@ class ProjectNode(Node):
                 ### check the tuple (self.to_be_projected['relation'][i],self.to_be_projected['attribute'][i]) to be non existent in tempo
                 ### add the above tuple in tempo
                 ### add self.to_be_projected['relation'][i]+'_' to self.to_be_projected['attribute'][i]
-                if self.to_be_projected['attribute'][i] not in tempo:
-                    clause = clause + self.to_be_projected['attribute'][i]+" , "
-                    tempo.add(self.to_be_projected['attribute'][i])
+                temp = self.to_be_projected['relation'][i]+'_'+self.to_be_projected['attribute'][i]
+                if temp not in tempo:
+                    clause = clause + temp+" , "
+                    tempo.add(temp)
             clause = clause[:-3]
         return clause
 
@@ -262,9 +276,9 @@ class SelectNode(Node):
             for i in range(len(self.conditions[j]['attribute'])):
                 ### append self.conditions[j]['relation'][i]+'_' to each self.conditions[j]['attribute'][i] 
                 if isinstance(self.conditions[j]['value'][i],int):
-                    current = current+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
+                    current = current+self.conditions[j]['relation'][i]+'_'+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
                 else:
-                    current = current+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+"'"+str(self.conditions[j]['value'][i])+"'"+" OR "
+                    current = current+self.conditions[j]['relation'][i]+'_'+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+"'"+str(self.conditions[j]['value'][i])+"'"+" OR "
             current = current[:-4]
             current += ")"
             clause += current
@@ -339,8 +353,8 @@ class HavingNode(Node):
         for j in range(len(self.conditions)):
             current = "("
             for i in range(len(self.conditions[j]['attribute'])):
-                ### add self.conditions[j]['relation'][x]+'_' in front of self.conditions[j]['attribute'][i]
-                current = current+self.conditions[j]['aggregate_operator'][i]+"_"+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
+                ### add self.conditions[j]['relation'][i]+'_' in front of self.conditions[j]['attribute'][i]
+                current = current+self.conditions[j]['aggregate_operator'][i]+"_"+self.conditions[j]['relation'][i]+'_'+self.conditions[j]['attribute'][i]+self.conditions[j]['operator'][i]+str(self.conditions[j]['value'][i])+" OR "
             current = current[:-4]
             current += ")"
             clause += current
@@ -446,9 +460,10 @@ class AggregateNode(Node):
             ### make a temp variable as self.group_by_attributes['relation'][x]+'_'self.group_by_attributes['attribute'][x]
             ### check if it is non existent in tempo
             ### clause = clause + temp
-            if self.group_by_attributes['attribute'][x] not in tempo:
-                clause = clause + self.group_by_attributes['attribute'][x] + " , "
-                tempo.add(self.group_by_attributes['attribute'][x])
+            temp = self.group_by_attributes['relation'][x]+'_'+self.group_by_attributes['attribute'][x]
+            if temp not in tempo:
+                clause = clause + temp + " , "
+                tempo.add(temp)
         clause = clause[:-3]
         return clause
     
@@ -462,7 +477,7 @@ class AggregateNode(Node):
         tempo = set([])
         for x in range(len(self.aggregates['attribute'])):
             ### add self.aggregates['relation'][x]+'_' in front of self.aggregates['attribute'][x]
-            rel = self.aggregates['operator'][x]+"("+self.aggregates['attribute'][x]+") as "+self.aggregates['operator'][x]+"_"+self.aggregates['attribute'][x]
+            rel = self.aggregates['operator'][x]+"("+self.aggregates['relation'][x]+'_'+self.aggregates['attribute'][x]+") as "+self.aggregates['operator'][x]+"_"+self.aggregates['relation'][x]+'_'+self.aggregates['attribute'][x]
             if rel not in tempo:
                 clause = clause + rel +" , "
                 tempo.add(rel)
@@ -472,9 +487,10 @@ class AggregateNode(Node):
                 ### make a temp variable as self.group_by_attributes['relation'][x]+'_'self.group_by_attributes['attribute'][x]
                 ### check if it is non existent in tempo
                 ### clause = clause + temp
-                if self.group_by_attributes['attribute'][x] not in tempo:
-                    clause = clause + self.group_by_attributes['attribute'][x] + " , "
-                    tempo.add(self.group_by_attributes['attribute'][x])
+                temp = self.group_by_attributes['relation'][x]+'_'+self.group_by_attributes['attribute'][x]
+                if temp not in tempo:
+                    clause = clause + temp + " , "
+                    tempo.add(temp)
 
         clause = clause[:-3]
         return clause
@@ -544,7 +560,7 @@ class JoinNode(Node):
         self.attributes = a1
         self.remove_duplicates()
 
-    def getColumns(self,t1name):
+    def getColumns(self,t1name,t2name):
         '''
         Function to get all the columns which are to be added in the sql query
         '''
@@ -554,9 +570,12 @@ class JoinNode(Node):
         for x in range(len(self.attributes['attribute'])):
             ### add self.attributes['relation'][x]+'_' to self.attributes['attribute'][x]
             if self.attributes['attribute'][x] != self.r1_attribute:
-                clause = clause+self.attributes['attribute'][x]
+                clause = clause+self.attributes['relation'][x]+'_'+self.attributes['attribute'][x]
             else:
-                clause = clause+t1name+"."+self.attributes['attribute'][x]
+                if self.r1 == self.attributes['relation'][x]:
+                    clause = clause+t1name+"."+self.attributes['relation'][x]+'_'+self.attributes['attribute'][x]
+                else:
+                    clause = clause+t2name+"."+self.attributes['relation'][x]+'_'+self.attributes['attribute'][x]
             clause=clause+" , "
         clause = clause[:-3]
         return clause
@@ -572,9 +591,9 @@ class JoinNode(Node):
         for x in range(len(attrs['attribute'])):
             ### attrs['relation'][x]+'_' in front of attrs['attribute'][x]
             if attrs['attribute'][x] != jattr:
-                clause = clause + attrs['attribute'][x]+" , "
+                clause = clause + attrs['relation'][x]+'_'+attrs['attribute'][x]+" , "
             else:
-                clause = clause+tname+"."+attrs['attribute'][x]+" , "
+                clause = clause+tname+"."+attrs['relation'][x]+'_'+attrs['attribute'][x]+" , "
         clause = clause[:-3]
         return clause
 
@@ -601,10 +620,11 @@ class JoinNode(Node):
             
             ### add self.r1+'_' and self.r2+'_' in front of self.r1_attribute and self.r2_attribute 
             if self.r1_attribute == self.r2_attribute:
-                temp = " SELECT "+self.getColumns(table1Name) +" FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+table2Name+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+table2Name+"."+self.r2_attribute+";"
+                temp = " SELECT "+self.getColumns(table1Name,table2Name) +" FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+table2Name+" ON "+config.catalogName+"."+table1Name+"."+self.r1+'_'+self.r1_attribute+"="+config.catalogName+"."+table2Name+"."+self.r2+'_'+self.r2_attribute+";"
             else:
-                temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+table2Name+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+table2Name+"."+self.r2_attribute+";"
+                temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+table2Name+" ON "+config.catalogName+"."+table1Name+"."+self.r1+'_'+self.r1_attribute+"="+config.catalogName+"."+table2Name+"."+self.r2+'_'+self.r2_attribute+";"
             sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
+            # print(sqlQuery)
             cur = config.globalConnections[self.site].cursor()
             cur.execute(sqlQuery)
             config.globalConnections[self.site].commit()
@@ -624,7 +644,7 @@ class JoinNode(Node):
                 ojoiattr = table1Name[:5]+str(time.time()).replace(".","")
 
                 ### add self.r1+'_' in front of self.r1_attribute
-                sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r1_attribute +" FROM "+config.catalogName+"."+table1Name+";"
+                sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r1+'_'+self.r1_attribute +" FROM "+config.catalogName+"."+table1Name+";"
                 # print(1)
 
                 cur1 = config.globalConnections[table1Site].cursor()
@@ -641,7 +661,7 @@ class JoinNode(Node):
                 trelrows = table2Name[:5]+str(time.time()).replace(".","")
                 ### add self.r1+'_' in front of self.r1_attribute
                 ### add self.r2+'_' in front of self.r2_attribute
-                sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(1,table2Name,self.r2_attribute) + " FROM "+config.catalogName+"."+table2Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r1_attribute+";"
+                sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(1,table2Name,self.r2_attribute) + " FROM "+config.catalogName+"."+table2Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table2Name+"."+self.r2+'_'+self.r2_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r1+'_'+self.r1_attribute+";"
                 # print(2)
                 cur2 = config.globalConnections[table2Site].cursor()
                 cur2.execute(sqlQuery)
@@ -659,9 +679,9 @@ class JoinNode(Node):
                 ### add self.r1+'_' in front of self.r1_attribute
                 ### add self.r2+'_' in front of self.r2_attribute
                 if self.r1_attribute == self.r2_attribute:
-                    temp = " SELECT "+self.getColumns(table1Name) +" FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2_attribute+";"
+                    temp = " SELECT "+self.getColumns(table1Name,trelrows) +" FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1+'_'+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2+'_'+self.r2_attribute+";"
                 else:
-                    temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2_attribute+";"
+                    temp = " SELECT * FROM "+config.catalogName+"."+table1Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table1Name+"."+self.r1+'_'+self.r1_attribute+"="+config.catalogName+"."+trelrows+"."+self.r2+'_'+self.r2_attribute+";"
                 
                 sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
                 # print(3)
@@ -688,7 +708,7 @@ class JoinNode(Node):
 
                 ojoiattr = table2Name[:5]+str(time.time()).replace(".","")
                 ### add self.r2+'_' in front of self.r2_attribute
-                sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r2_attribute +" FROM "+config.catalogName+"."+table2Name+";"
+                sqlQuery = "create table "+ config.catalogName + "." + ojoiattr + " SELECT DISTINCT "+ self.r2+'_'+self.r2_attribute +" FROM "+config.catalogName+"."+table2Name+";"
                 # print(sqlQuery)
                 # print(5)
 
@@ -706,7 +726,7 @@ class JoinNode(Node):
                 trelrows = table1Name[:5]+str(time.time()).replace(".","")
                 ### add self.r1+'_' in front of self.r1_attribute
                 ### add self.r2+'_' in front of self.r2_attribute
-                sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(0,table1Name,self.r1_attribute) + " FROM "+config.catalogName+"."+table1Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table1Name+"."+self.r1_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r2_attribute+";"
+                sqlQuery = "create table "+ config.catalogName + "." + trelrows + " SELECT "+self.getChildColumns(0,table1Name,self.r1_attribute) + " FROM "+config.catalogName+"."+table1Name+" INNER JOIN "+config.catalogName+"."+ojoiattr+" ON "+config.catalogName+"."+table1Name+"."+self.r1+'_'+self.r1_attribute+"="+config.catalogName+"."+ojoiattr+"."+self.r2+'_'+self.r2_attribute+";"
                 # print(sqlQuery)
                 # print(6)
                 cur1 = config.globalConnections[table1Site].cursor()
@@ -725,9 +745,9 @@ class JoinNode(Node):
                 ### add self.r1+'_' in front of self.r1_attribute
                 ### add self.r2+'_' in front of self.r2_attribute
                 if self.r1_attribute == self.r2_attribute:
-                    temp = " SELECT "+self.getColumns(table2Name) +" FROM "+config.catalogName+"."+table2Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+trelrows+"."+self.r1_attribute+";"
+                    temp = " SELECT "+self.getColumns(trelrows,table2Name) +" FROM "+config.catalogName+"."+table2Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table2Name+"."+self.r2+'_'+self.r2_attribute+"="+config.catalogName+"."+trelrows+"."+self.r1+'_'+self.r1_attribute+";"
                 else:
-                    temp = " SELECT * FROM "+config.catalogName+"."+table2Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table2Name+"."+self.r2_attribute+"="+config.catalogName+"."+trelrows+"."+self.r1_attribute+";"
+                    temp = " SELECT * FROM "+config.catalogName+"."+table2Name + " INNER JOIN "+config.catalogName+"."+trelrows+" ON "+config.catalogName+"."+table2Name+"."+self.r2+'_'+self.r2_attribute+"="+config.catalogName+"."+trelrows+"."+self.r1+'_'+self.r1_attribute+";"
                 
                 sqlQuery = "create table "+ config.catalogName + "." + nuRel + temp
                 # print(sqlQuery)
@@ -870,8 +890,9 @@ class HFNode(Node):
 
         nuRel = self.relation+str(time.time()).replace(".","")
         ### Rename Column here, relation_attribute
-        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+";"
-        
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select "+self.getColumnClause()+" from " + config.catalogName + "." +self.relation+";"
+        # print(sqlQuery)
+
         cur = config.globalConnections[self.site].cursor()
         cur.execute(sqlQuery)
         config.globalConnections[self.site].commit()
@@ -933,7 +954,7 @@ class VFNode(Node):
 
         nuRel = self.relation+str(time.time()).replace(".","")
         ### Rename Column here, relation_attribute
-        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+";"
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select "+self.getColumnClause()+" from " + config.catalogName + "." +self.relation+";"
         
         cur = config.globalConnections[self.site].cursor()
         cur.execute(sqlQuery)
@@ -979,7 +1000,7 @@ class RelationNode(Node):
 
         nuRel = self.relation+str(time.time()).replace(".","")
         ### Rename Column here, relation_attribute
-        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select * from " + config.catalogName + "." +self.relation+";"
+        sqlQuery = "create table "+ config.catalogName + "." + nuRel + " select "+self.getColumnClause()+" from " + config.catalogName + "." +self.relation+";"
         
         cur = config.globalConnections[self.site].cursor()
         cur.execute(sqlQuery)

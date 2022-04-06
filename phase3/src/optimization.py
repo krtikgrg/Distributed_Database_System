@@ -1,6 +1,7 @@
 import config
 from itertools import permutations
 import pandas as pd
+import copy
 class Optimizer:
     '''
     Class for different kinds of optimizations that are to be incorporated in the code
@@ -108,6 +109,11 @@ class Optimizer:
         Function to check whether we will move from site 1 to site 2 or site 2 to site1
         '''
         config.logger.log("Optimizer::getDirectionJoin")
+        r1a = copy.deepcopy(r1a) 
+        r2a = copy.deepcopy(r2a) 
+        r1a = r1+'_'+r1a
+        r2a = r2+'_'+r2a
+
         t1 = re_vals[0][0]
         t1site = re_vals[0][1]
         t1len = re_vals[0][2]

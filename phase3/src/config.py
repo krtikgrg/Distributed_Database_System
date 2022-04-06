@@ -70,15 +70,26 @@ Derived_Horizontal_Fragments = {
     'Direct_Fragment':[1,1,1,0,0,0]
 }
 Sites = {
-    'Site' : [1,2,3,4],
-    'User_Name' : ["user","user","user","user"],
-    'Password' : ["iiit123","iiit123","iiit123","iiit123"],
-    'IP_Address' : ["10.3.5.215","10.3.5.214","10.3.5.213","10.3.5.212"]
+    'Site' : [2,3,4],
+    'User_Name' : ["user","user","user"],
+    'Password' : ["iiit123","iiit123","iiit123"],
+    'IP_Address' : ["10.3.5.214","10.3.5.213","10.3.5.212"]
 }
 Allocation = {
     'Fragment_Name' : ["Food_Item_Chinese","Food_Item_Indian","Food_Item_Italian","Restaurants_Minimal","Restaurants_Remaining","User_Minimal","User_Remaining","Order_Items_Chinese","Order_Items_Indian","Order_Items_Italian","User_Restaurant_Order_Amount_Chinese","User_Restaurant_Order_Amount_Indian","User_Restaurant_Order_Amount_Italian"],
-    'Site' : [1,2,3,4,4,4,2,1,2,3,1,2,3]
+    'Site' : [2,2,3,4,4,4,2,2,2,3,2,2,3]
 }
+# Sites = {
+#     'Site' : [1,2,3,4],
+#     'User_Name' : ["user","user","user","user"],
+#     'Password' : ["iiit123","iiit123","iiit123","iiit123"],
+#     'IP_Address' : ["10.3.5.215","10.3.5.214","10.3.5.213","10.3.5.212"]
+# }
+# Allocation = {
+#     'Fragment_Name' : ["Food_Item_Chinese","Food_Item_Indian","Food_Item_Italian","Restaurants_Minimal","Restaurants_Remaining","User_Minimal","User_Remaining","Order_Items_Chinese","Order_Items_Indian","Order_Items_Italian","User_Restaurant_Order_Amount_Chinese","User_Restaurant_Order_Amount_Indian","User_Restaurant_Order_Amount_Italian"],
+#     'Site' : [1,2,3,4,4,4,2,1,2,3,1,2,3]
+# }
+
 
 def debugPrint(str):
     '''
