@@ -48,3 +48,12 @@
 1. This distribution supports only int, float and varchar data types in sql
 1. Assuming that all the column names of all the relations are unique, no pair of attribute names match with each other.
 1. In the last commit, the above required is removed. Now the only requirement is that the names of columns inside a relation must be unique
+1. Provide the path of the directory as a command line argument which contains the application schema and fragmentation schema.
+1. For providing the allocation schema, we assume that there will be 4 files (one for each site)
+1. The following nomenclature is followed:
+    1. _Application.sql_ corresponds to the application schema
+    1. _fragmentation\_1.sql_ corresponds to the file containing the SQL commands for fragments located on site 1.
+    1. _fragmentation\_2.sql_ corresponds to the file containing the SQL commands for fragments located on site 2.
+    1. _fragmentation\_3.sql_ corresponds to the file containing the SQL commands for fragments located on site 3.
+    1. _fragmentation\_4.sql_ corresponds to the file containing the SQL commands for fragments located on site 4.
+    1. _data.sql_ corresponds to the file containing the SQL commands for inserting the data into the tables mentioned in application schema.

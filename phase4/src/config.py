@@ -1,5 +1,6 @@
 DEBUG = 0
 PATH_TO_LOGS_FILE = "./logs.txt"
+PATH_TO_SCHEMAS = "../../evals/"
 
 logger = None
 parsedQuery = None

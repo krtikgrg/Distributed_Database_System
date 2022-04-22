@@ -3,8 +3,8 @@ class Logger:
     '''
     Class taking care of logs
     '''
-    def __init__(self):
-        self.PATH = config.PATH_TO_LOGS_FILE
+    def __init__(self,path = config.PATH_TO_LOGS_FILE):
+        self.PATH = path
         self.fp = open(self.PATH,'w')
 
     def log(self,str):

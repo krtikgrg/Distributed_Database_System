@@ -5,6 +5,7 @@ import pandas as pd
 from sql_metadata import Parser
 
 from executor import Executor
+from updator import Updator
 from optimization import Optimizer
 from node import Node,ProjectNode,SelectNode,AggregateNode,JoinNode,UnionNode,RelationNode,HavingNode,HFNode,VFNode
 class Query:
@@ -266,6 +267,7 @@ class Query:
         if query[0][0] == "UPDATE":
             self.updateQuery = 1
             self.parseUpdateQuery(query)
+            self.updator = Updator()
             return
 
         # code to set/extract the above variables from the given query
@@ -1664,3 +1666,15 @@ class Query:
         print()
         print(A)
         print()
+
+    def runUpdateQuery(self):
+        '''
+        A wrapper function which will in turn execute an update query by following the two phase commit protocol
+        '''
+        config.logger.log("Query::runUpdateQuery")
+
+        abort = self.updator.update()
+        if abort == 1:
+            print("Transaction failed due to some internal failure, Try again later")
+        else:
+            print("Transaction succesfully executed")

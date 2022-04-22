@@ -12,12 +12,19 @@ from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSele
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
-if n > 2:
+if n > 3:
     print("ERROR :: Unknown Number of Arguments")
     exit()
 elif n == 2:
     if sys.argv[1] == '-d':
         config.DEBUG = 1
+    else:
+        config.PATH_TO_SCHEMAS = sys.argv[1]
+elif n==3:
+    if sys.argv[1] == '-d':
+        config.PATH_TO_SCHEMAS = sys.argv[2]
+    else:
+        config.PATH_TO_SCHEMAS = sys.argv[1]
 
 config.logger = Logger()
 toInp = TakeInput()
@@ -73,3 +80,4 @@ while(True):
         else:
             # execute the update query
             toBeWritten = 1
+            config.parsedQuery.runUpdateQuery()
