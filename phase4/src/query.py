@@ -73,6 +73,112 @@ class Query:
             self.aggregates['operator'].append(aoper)
         return attr,rel,aoper
 
+    def parseUpdateQuery(self,query):
+        '''
+        Function to parse the update sql command and to extract the required variables
+        '''
+        config.logger.log("Query::parseUpdateQuery")
+
+        if query[0][1] not in config.relationColumnMap:
+            config.errorPrint("Unknown Relation Specified")
+        self.updateRelation = query[0][1]
+
+        config.logger.log("UPDATE QUERY::Resolving SET keyword")
+        
+        i = 1
+        done = 1
+        while(done):
+            if query[i][-1][-1] != ',':
+                done = 0
+            else:
+                query[i][-1] = query[i][-1][:-1]
+            
+            index = query[i][-1].find("=")
+            curattr = query[i][-1][:index]
+            curval = query[i][-1][index+1:]
+            if curattr not in config.relationColumnMap[self.updateRelation]:
+                config.errorPrint("Unknown attribute specified")
+            self.updateAttributes['attribute'].append(curattr)
+            self.updateAttributes['value'].append(curval)
+            i += 1
+        
+        if i != len(query):
+            # WHERE clause existent
+            config.logger.log("UPDATE QUERY::Processing WHERE keyword")
+            itr = i
+            while(itr<len(query) and ((query[itr][0] == "WHERE") or (query[itr][0] == "AND") or (query[itr][0] == "OR"))):
+                if (query[itr][0] == "WHERE") or (query[itr][0] == "AND"):
+                    #create new instance
+                    instance = copy.deepcopy(self.updateSelectStructure)
+                    if len(self.updateSelectConditions) > 0:
+                        if len(self.updateSelectConditions[-1]['attribute'])!=0:
+                            self.updateSelectConditions.append(instance)
+                    else:
+                        self.updateSelectConditions.append(instance)
+
+                if query[itr][1][0] == '(':
+                    query[itr][1] = query[itr][1][1:]
+                if query[itr][1][-1] == ')':
+                    query[itr][1] = query[itr][1][:-1]
+
+                operator = ""
+                toProcess = ""
+                remaining = ""
+                if query[itr][1].find("!=") != -1:
+                    index = query[itr][1].find("!=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+2:]
+                    operator = "!="
+                elif query[itr][1].find("<=") != -1:
+                    index = query[itr][1].find("<=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+2:]
+                    operator = "<="
+                elif query[itr][1].find(">=") != -1:
+                    index = query[itr][1].find(">=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+2:]
+                    operator = ">="
+                elif query[itr][1].find("<") != -1:
+                    index = query[itr][1].find("<")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+1:]
+                    operator = "<"
+                elif query[itr][1].find(">") != -1:
+                    index = query[itr][1].find(">")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+1:]
+                    operator = ">"
+                elif query[itr][1].find("=") != -1:
+                    index = query[itr][1].find("=")
+                    toProcess = query[itr][1][:index]
+                    remaining = query[itr][1][index+1:]
+                    operator = "="
+                else:
+                    config.errorPrint("Operator not recognised in WHERE clause")
+                
+                attr = toProcess
+                if attr not in config.relationColumnMap[self.updateRelation]:
+                    config.errorPrint("Unknown attribute specified in where clause of update command")
+                if remaining.isnumeric():
+                    value = int(remaining)
+                else:
+                    value = remaining[1:-1]
+                    # value = remaining
+                # self.updateSelectConditions[-1]['relation'].append(rel)
+                self.updateSelectConditions[-1]['attribute'].append(attr)
+                self.updateSelectConditions[-1]['operator'].append(operator)
+                self.updateSelectConditions[-1]['value'].append(value)
+                itr += 1
+
+        config.debugPrint("UPDATE COMMAND VARIABLES")
+        config.debugPrint(self.updateQuery)
+        config.debugPrint(self.updateRelation)
+        config.debugPrint("")
+        config.debugPrint(self.updateAttributes)
+        config.debugPrint(self.updateSelectConditions)
+        return
+            
     def parse(self,query):
         '''
         Function to parse a query
@@ -143,6 +249,24 @@ class Query:
         self.PART_ONE_PROJECT_ALL = None 
         self.SELECT_ALL = None 
         self.HAVE_JOIN = None
+
+        self.updateQuery = 0
+        self.updateRelation = None
+        self.updateAttributes = {
+            "attribute":[],
+            "value":[]
+        }
+        self.updateSelectConditions = []
+        self.updateSelectStructure = {
+            "attribute":[],
+            "operator":[],
+            "value":[]
+        }
+
+        if query[0][0] == "UPDATE":
+            self.updateQuery = 1
+            self.parseUpdateQuery(query)
+            return
 
         # code to set/extract the above variables from the given query
         

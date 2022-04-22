@@ -50,22 +50,26 @@ while(True):
         config.parsedQuery = Query()
         config.parsedQuery.parse(sqlParsed)
 
-        config.parsedQuery.generateTree()
-        # config.parsedQuery.PrintTree('./original.md')
-        config.parsedQuery.optimizeTreeSelection()
-        # config.parsedQuery.PrintTree('./selection_optimized.md')
-        config.parsedQuery.optimizeTreeProjection() 
-        # config.parsedQuery.PrintTree('./optimized.md') 
-        config.parsedQuery.replaceRelationsWithFragments()
-        # config.parsedQuery.PrintTree('./fragmented.md')
-        config.parsedQuery.pushSelectsFragmented()
-        if config.parsedQuery.emptyResult == 1:
-            continue
-        # config.parsedQuery.PrintTree('./fragmented_select.md')
+        if config.parsedQuery.updateQuery == 0:
+            config.parsedQuery.generateTree()
+            # config.parsedQuery.PrintTree('./original.md')
+            config.parsedQuery.optimizeTreeSelection()
+            # config.parsedQuery.PrintTree('./selection_optimized.md')
+            config.parsedQuery.optimizeTreeProjection() 
+            # config.parsedQuery.PrintTree('./optimized.md') 
+            config.parsedQuery.replaceRelationsWithFragments()
+            # config.parsedQuery.PrintTree('./fragmented.md')
+            config.parsedQuery.pushSelectsFragmented()
+            if config.parsedQuery.emptyResult == 1:
+                continue
+            # config.parsedQuery.PrintTree('./fragmented_select.md')
 
-        config.parsedQuery.pushProjectsFragmented()
-        config.parsedQuery.PrintTree('./complete.md')
-        config.parsedQuery.execute()
-        END = time.time()
-        print("Time Taken (In Seconds):",END-STRT)
-        deleteTempFilesTables()
+            config.parsedQuery.pushProjectsFragmented()
+            config.parsedQuery.PrintTree('./complete.md')
+            config.parsedQuery.execute()
+            END = time.time()
+            print("Time Taken (In Seconds):",END-STRT)
+            deleteTempFilesTables()
+        else:
+            # execute the update query
+            toBeWritten = 1
