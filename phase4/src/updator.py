@@ -4,7 +4,7 @@ import copy
 import os
 
 from trace import Logger
-from utility import copyToServer
+from utility import copyToServer,copyFromServer,dumpTable,importTable
 class Updator:
     '''
     Class for updating a relation according to the given update command
@@ -27,6 +27,68 @@ class Updator:
             # os.remove("participants_"+str(i)+".txt") ## UNCOMMENT
         
         # transfer of wrong tuples
+        for i in range(len(config.Horizontal_Fragments['Fragment_Name'])):
+            if config.Horizontal_Fragments['Table_Name'][i] == config.parsedQuery.updateRelation:
+                curFrag = config.Horizontal_Fragments['Fragment_Name'][i]
+                curSite = config.Allocation['Site'][config.Allocation['Fragment_Name'].index(curFrag)]
+
+                for j in range(len(config.Horizontal_Fragments['Fragment_Name'])):
+                    if j!=i and config.Horizontal_Fragments['Table_Name'][j] == config.parsedQuery.updateRelation:
+                        altFrag = config.Horizontal_Fragments['Fragment_Name'][j]
+                        altSite = config.Allocation['Site'][config.Allocation['Fragment_Name'].index(altFrag)]
+
+                        altCondition = config.Horizontal_Fragments['Attribute'][j]+config.Horizontal_Fragments['Operator'][j]+config.Horizontal_Fragments['Val'][j]
+                        print(altCondition)
+
+                        nuTabName = altFrag+curFrag 
+                        sqlQuery = "create table "+config.catalogName+"."+nuTabName+" select * from "+config.catalogName+"."+curFrag+" where "+altCondition+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[curSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[curSite].commit()
+
+                        sqlQuery = "DELETE FROM "+config.catalogName+"."+curFrag+" WHERE "+altCondition+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[curSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[curSite].commit()
+
+                        dumpTable(nuTabName,curSite)
+                        copyFromServer(curSite)
+                        copyToServer(altSite)
+                        importTable(altSite)
+
+                        finalTabName = nuTabName+"final"
+                        sqlQuery = "Create Table "+config.catalogName+"."+finalTabName+" select * from "+config.catalogName+"."+altFrag+" UNION select * from "+config.catalogName+"."+nuTabName+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[altSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[altSite].commit()
+
+                        sqlQuery = "drop table "+config.catalogName+"."altFrag+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[altSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[altSite].commit()
+
+                        sqlQuery = "alter table "+config.catalogName+"."+finalTabName+" RENAME "+config.catalogName+"."+altFrag+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[altSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[altSite].commit()
+
+                        # remove nuTabName at curSite, altSite
+                        sqlQuery = "drop table "+config.catalogName+"."+nuTabName+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[altSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[altSite].commit()
+                        sqlQuery = "drop table "+config.catalogName+"."+nuTabName+";"
+                        print(sqlQuery)
+                        # cur = config.globalConnections[curSite].cursor()
+                        # cur.execute(sqlQuery)
+                        # config.globalConnections[curSite].commit()
+
         return
 
     def generateAttributes(self):

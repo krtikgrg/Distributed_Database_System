@@ -38,37 +38,37 @@ tempTables = {}
 # }
 
 Tables = {
-    'Name':['User','Restaurants','Food_Item','Ordre','Order_Items'],
+    'Name':['Users','Restaurants','Food_Item','Orders','Order_Items'],
     'Fragmentation_Type':['VF','VF','HF','DHF','DHF'],
     'Number_Of_Fragments':[2,2,3,3,3]
 }
 TableKeys = {
-    'User':"PK_Custom",
+    'Users':"PK_Custom",
     'Restaurants':"PK_Custom",
     'Food_Item':"PK_Custom",
-    'Ordre' : "PK_Custom"
+    'Orders' : "PK_Custom"
 }
 Columns = {
-    'Table_Name': ['User','User','User','User','User','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Food_Item','Food_Item','Food_Item','Food_Item','Food_Item','Food_Item','Ordre','Ordre','Ordre','Ordre','Order_Items','Order_Items','Order_Items'],
-    'Column_Name': ['Name','Email','Address','Phone_Number','PK_Custom','Name','Address','Email','Rating','Specialty','Num_Reviews','PK_Custom','Name','Type','Price','Category','FK_Restaurant','PK_Custom','User_ID','Restaurant_ID','Amount','PK_Custom','Order_ID','Item_ID','Quantity']
+    'Table_Name': ['Users','Users','Users','Users','Users','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Restaurants','Food_Item','Food_Item','Food_Item','Food_Item','Food_Item','Food_Item','Orders','Orders','Orders','Orders','Order_Items','Order_Items','Order_Items'],
+    'Column_Name': ['Name','Email','Address','Phone_Number','PK_Custom','Name','Address','Email','Rating','Specialty','Num_Reviews','PK_Custom','Name','Item_Type','Price','Item_Category','FK_Restaurant','PK_Custom','User_ID','Restaurant_ID','Amount','PK_Custom','Order_ID','Item_ID','Quantity']
 }
 Horizontal_Fragments = {
     'Fragment_Name' : ['Food_Item_Chinese','Food_Item_Indian','Food_Item_Italian'],
     'Table_Name' : ['Food_Item','Food_Item','Food_Item'],
-    'Attribute' : ['Type','Type','Type'],
+    'Attribute' : ['Item_Type','Item_Type','Item_Type'],
     'Operator' : ['=','=','='],
     'Val' : ['Chinese','Indian','Italian']
 }
 Vertical_Fragments = {
     'Fragment_Name' : ['Restaurants_Minimal','Restaurants_Remaining','User_Minimal','User_Remaining'],
-    'Table_Name' : ['Restaurants','Restaurants','User','User']
+    'Table_Name' : ['Restaurants','Restaurants','Users','Users']
 }
 VF_Columns = {
     'Fragment_Name':['Restaurants_Minimal','Restaurants_Minimal','Restaurants_Minimal','Restaurants_Minimal','Restaurants_Remaining','Restaurants_Remaining','Restaurants_Remaining','Restaurants_Remaining','User_Minimal','User_Minimal','User_Minimal','User_Remaining','User_Remaining','User_Remaining'],
     'Column_Name' : ['Name','Rating','Specialty','PK_Custom','PK_Custom','Address','Email','Num_Reviews','Name','Email','PK_Custom','Address','Phone_Number','PK_Custom']
 }
 Derived_Horizontal_Fragments = {
-    'Table_Name':['Order_Items','Order_Items','Order_Items','Ordre','Ordre','Ordre'],
+    'Table_Name':['Order_Items','Order_Items','Order_Items','Orders','Orders','Orders'],
     'Fragment_Name':['Order_Items_Chinese','Order_Items_Indian','Order_Items_Italian','User_Restaurant_Order_Amount_Chinese','User_Restaurant_Order_Amount_Indian','User_Restaurant_Order_Amount_Italian'],
     'Horizontal_Fragment_Name':['Food_Item_Chinese','Food_Item_Indian','Food_Item_Italian','Order_Items_Chinese','Order_Items_Indian','Order_Items_Italian'],
     'Direct_Fragment':[1,1,1,0,0,0]
