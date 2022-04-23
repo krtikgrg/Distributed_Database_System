@@ -2,6 +2,9 @@ DEBUG = 0
 PATH_TO_LOGS_FILE = "./logs.txt"
 PATH_TO_SCHEMAS = "../../evals/"
 
+localuser = "localpc"
+localpass = "iiit123"
+
 logger = None
 parsedQuery = None
 aggregateOperators = ["AVG","COUNT","MAX","MIN","SUM"]
@@ -15,6 +18,7 @@ relationColumnMap = {
     't3' : ['col4','col5','d','e'],
     't4' : ['b','c','col3']
 }
+all_tables = []
 coordinator = None
 participants = {}
 available_sites = [2,3,4]

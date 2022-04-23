@@ -52,8 +52,11 @@
 1. For providing the allocation schema, we assume that there will be 4 files (one for each site)
 1. The following nomenclature is followed:
     1. _Application.sql_ corresponds to the application schema
-    1. _fragmentation\_1.sql_ corresponds to the file containing the SQL commands for fragments located on site 1.
-    1. _fragmentation\_2.sql_ corresponds to the file containing the SQL commands for fragments located on site 2.
-    1. _fragmentation\_3.sql_ corresponds to the file containing the SQL commands for fragments located on site 3.
-    1. _fragmentation\_4.sql_ corresponds to the file containing the SQL commands for fragments located on site 4.
-    1. _data.sql_ corresponds to the file containing the SQL commands for inserting the data into the tables mentioned in application schema.
+    1. _fragmentation.sql_ corresponds to the file containing the SQL commands for different fragments. At the end of each SQL command a keyword At is appended to specify the site at which that fragment is going to be located.
+        1. eg: "Select * from labs where lab_location = 'KCIS' As labs1 At 1;"
+        1. Here we specify that the fragment needs to be created at site 1.
+1. Assuming that the tables will have a primary key consisting of one attribute only.
+1. For specifying a DHF use the format given below
+    1. Select * from faculty and labs1 As faculty1;
+    1. Here faculty relation is derived horizontally fragmented based on labs1 and this newly created DHF is named as faculty1
+1. In our application schema, each order can contain only one item. Although the Quantity can be greator than 1

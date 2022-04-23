@@ -1,0 +1,53 @@
+DROP DATABASE IF EXISTS zomato_catalog_outlaws;
+CREATE SCHEMA zomato_catalog_outlaws;
+USE zomato_catalog_outlaws;
+
+DROP TABLE IF EXISTS Food_Item;
+CREATE TABLE Food_Item (
+    Name VARCHAR(100) NOT NULL,
+    Item_Type VARCHAR(100) NOT NULL,
+    Price INT NOT NULL,
+    Item_Category VARCHAR(100) NOT NULL,
+    FK_Restaurant VARCHAR(100) NOT NULL,
+    PK_Custom VARCHAR(100) NOT NULL,
+    PRIMARY KEY(PK_Custom)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;
+
+DROP TABLE IF EXISTS Order_Items;
+CREATE TABLE Order_Items (
+    Order_ID VARCHAR(100) NOT NULL,
+    Item_ID VARCHAR(100) NOT NULL,
+    Quantity INT NOT NULL,
+    PRIMARY KEY(Order_ID)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;
+
+DROP TABLE IF EXISTS Orders;
+CREATE TABLE Orders (
+    User_ID VARCHAR(100) NOT NULL,
+    Restaurant_ID VARCHAR(100) NOT NULL,
+    Amount INT NOT NULL,
+    PK_Custom VARCHAR(100) NOT NULL,
+    PRIMARY KEY(PK_Custom)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;
+
+DROP TABLE IF EXISTS Users;
+CREATE TABLE Users (
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) NOT NULL,
+    Address VARCHAR(200) NOT NULL,
+    Phone_Number VARCHAR(100) NOT NULL,
+    PK_Custom VARCHAR(100) NOT NULL,
+    PRIMARY KEY(PK_Custom)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;
+
+DROP TABLE IF EXISTS Restaurants;
+CREATE TABLE Restaurants (
+    Address VARCHAR(200) NOT NULL,
+    Email VARCHAR(100) NOT NULL,
+    Num_Reviews INT NOT NULL,
+    Name VARCHAR(100) NOT NULL,
+    Rating INT NOT NULL,
+    Specialty VARCHAR(100) NOT NULL,
+    PK_Custom VARCHAR(100) NOT NULL,
+    PRIMARY KEY(PK_Custom)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;

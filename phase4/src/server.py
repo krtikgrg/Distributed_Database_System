@@ -28,11 +28,11 @@ elif n==3:
 
 config.logger = Logger()
 toInp = TakeInput()
+createSSHTunnels()
+createMySqlConnections()
 getSchema(toInp)
 generateRelationColumnMapFromMetaData()
 initializeJoinSelectivities()
-createSSHTunnels()
-createMySqlConnections()
 getRelationLengths()
 computeTransferCoefficients()
 getEntrySizes()

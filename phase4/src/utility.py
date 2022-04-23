@@ -1,22 +1,30 @@
 import paramiko
 from scp import SCPClient
 import config
+import os
 
-def dumpTable(relname,siteno,ofile = 'dump.txt'):
+def dumpTable(relname,siteno,ofile = 'dump.txt',mypc = 0):
     '''
     Function which will dump a mysql table using mysqldump command into ofile
     '''
     config.logger.log("utility::dumpTable")
     
-    command = "echo 'use "+config.catalogName+";' > ./Outlaws/"+ofile
-    (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
-    op = c.read()
+    if mypc == 0 :
+        command = "echo 'use "+config.catalogName+";' > ./Outlaws/"+ofile
+        (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
+        op = c.read()
 
-    command = "mysqldump -u user -piiit123 "+config.catalogName+" "+relname+" >> ./Outlaws/"+ofile
-    # print(command)
-    (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
-    op = c.read()
-    # print(op)
+        command = "mysqldump -u user -piiit123 "+config.catalogName+" "+relname+" >> ./Outlaws/"+ofile
+        # print(command)
+        (a,b,c) = config.paramikoConnections[siteno].exec_command(command)
+        op = c.read()
+        # print(op)
+    else:
+        command = "echo 'use "+config.catalogName+";' > ./"+ofile
+        os.system(command)
+        command = "mysqldump -u localpc -piiit123 "+config.catalogName+" "+relname+" >> ./"+ofile
+        os.system(command)
+        
 
 def copyFromServer(siteno,ofile = 'dump.txt'):
     '''
