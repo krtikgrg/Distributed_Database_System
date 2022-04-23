@@ -4,9 +4,9 @@ DROP TABLE IF EXISTS Food_Item_Chinese;
 
 CREATE TABLE Food_Item_Chinese (
     Name VARCHAR(100) NOT NULL,
-    Type VARCHAR(100) NOT NULL,
+    Item_Type VARCHAR(100) NOT NULL,
     Price INT NOT NULL,
-    Category VARCHAR(100) NOT NULL,
+    Item_Category VARCHAR(100) NOT NULL,
     FK_Restaurant VARCHAR(100) NOT NULL,
     PK_Custom VARCHAR(100) NOT NULL,
     PRIMARY KEY(PK_Custom)

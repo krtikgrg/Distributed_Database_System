@@ -21,10 +21,10 @@ LOCK TABLES Tables WRITE;
 INSERT INTO
     Tables
 VALUES
-    ("User", "VF",2),
+    ("Users", "VF",2),
     ("Restaurants", "VF",2),
     ("Food_Item", "HF",3),
-    ("Order", "DHF",3),
+    ("Orders", "DHF",3),
     ("Order_Items", "DHF",3);
 
 UNLOCK TABLES;
@@ -43,11 +43,11 @@ LOCK TABLES Columns WRITE;
 INSERT INTO
     Columns
 VALUES
-    ("User", "Name"),
-    ("User", "Email"),
-    ("User", "Address"),
-    ("User", "Phone_Number"),
-    ("User", "PK_Custom"),
+    ("Users", "Name"),
+    ("Users", "Email"),
+    ("Users", "Address"),
+    ("Users", "Phone_Number"),
+    ("Users", "PK_Custom"),
     ("Restaurants", "Name"),
     ("Restaurants", "Address"),
     ("Restaurants", "Email"),
@@ -56,15 +56,15 @@ VALUES
     ("Restaurants", "Num_Reviews"),
     ("Restaurants", "PK_Custom"),
     ("Food_Item", "Name"),
-    ("Food_Item", "Type"),
+    ("Food_Item", "Item_Type"),
     ("Food_Item", "Price"),
-    ("Food_Item", "Category"),
+    ("Food_Item", "Item_Category"),
     ("Food_Item", "FK_Restaurant"),
     ("Food_Item", "PK_Custom"),
-    ("Order", "User_ID"),
-    ("Order", "Restaurant_ID"),
-    ("Order", "Amount"),
-    ("Order", "PK_Custom"),
+    ("Orders", "User_ID"),
+    ("Orders", "Restaurant_ID"),
+    ("Orders", "Amount"),
+    ("Orders", "PK_Custom"),
     ("Order_Items", "Order_ID"),
     ("Order_Items", "Item_ID"),
     ("Order_Items", "Quantity");
@@ -92,21 +92,21 @@ VALUES
     (
         "Food_Item_Chinese",
         "Food_Item",
-        "Type",
+        "Item_Type",
         "=",
         "Chinese"
     ),
     (
         "Food_Item_Indian",
         "Food_Item",
-        "Type",
+        "Item_Type",
         "=",
         "Indian"
     ),
     (
         "Food_Item_Italian",
         "Food_Item",
-        "Type",
+        "Item_Type",
         "=",
         "Italian"
     );
@@ -130,8 +130,8 @@ INSERT INTO
 VALUES
     ("Restaurants_Minimal", "Restaurants"),
     ("Restaurants_Remaining", "Restaurants"),
-    ("User_Minimal", "User"),
-    ("User_Remaining", "User");
+    ("User_Minimal", "Users"),
+    ("User_Remaining", "Users");
 
 UNLOCK TABLES;
 
@@ -203,19 +203,19 @@ VALUES
         1
     ),
     (
-        "Order",
+        "Orders",
         "User_Restaurant_Order_Amount_Chinese",
         "Order_Items_Chinese",
         0
     ),
     (
-        "Order",
+        "Orders",
         "User_Restaurant_Order_Amount_Indian",
         "Order_Items_Indian",
         0
     ),
     (
-        "Order",
+        "Orders",
         "User_Restaurant_Order_Amount_Italian",
         "Order_Items_Italian",
         0
