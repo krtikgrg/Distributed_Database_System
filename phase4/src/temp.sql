@@ -1,2 +1,0 @@
-DROP DATABASE IF EXISTS zomato_catalog_outlaws;
-CREATE SCHEMA zomato_catalog_outlaws
