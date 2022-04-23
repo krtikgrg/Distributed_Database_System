@@ -145,3 +145,5 @@ same for DHF and for VF pick any one and get that value and this is it
 when copying a table, the copied table needs to be added in the tempTables for the new site too
 
 Update DB Schema
+
+sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.214:~/Outlaws/ && sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.213:~/Outlaws/ && sshpass -p "iiit123" scp ./catalog.sql user@10.3.5.212:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site1.sql user@10.3.5.214:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site2.sql user@10.3.5.214:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site3.sql user@10.3.5.213:~/Outlaws/ && sshpass -p "iiit123" scp ./application_site4.sql user@10.3.5.212:~/Outlaws/
