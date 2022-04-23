@@ -8,7 +8,7 @@ from utility import copyFromServer, copyToServer, dumpTable, importTable
 from input import TakeInput
 from trace import Logger
 from query import Query
-from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationLengths, createSSHTunnels, createMySqlConnections, closeConnections, computeTransferCoefficients, getEntrySizes, deleteTempFilesTables
+from preprocess import generateRelationColumnMapFromMetaData, initializeJoinSelectivities, getSchema, getRelationLengths, createSSHTunnels, createMySqlConnections, closeConnections, computeTransferCoefficients, getEntrySizes, deleteTempFilesTables, updatePreparation
 
 # Checking if code has been run in DEBUG mode
 n = len(sys.argv)
@@ -36,6 +36,7 @@ createMySqlConnections()
 getRelationLengths()
 computeTransferCoefficients()
 getEntrySizes()
+updatePreparation()
 
 while(True):
     query = toInp.inputQuery()
@@ -74,10 +75,10 @@ while(True):
             config.parsedQuery.pushProjectsFragmented()
             config.parsedQuery.PrintTree('./complete.md')
             config.parsedQuery.execute()
-            END = time.time()
-            print("Time Taken (In Seconds):",END-STRT)
-            deleteTempFilesTables()
         else:
             # execute the update query
             toBeWritten = 1
             config.parsedQuery.runUpdateQuery()
+        END = time.time()
+        print("Time Taken (In Seconds):",END-STRT)
+        deleteTempFilesTables()

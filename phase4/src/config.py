@@ -15,6 +15,9 @@ relationColumnMap = {
     't3' : ['col4','col5','d','e'],
     't4' : ['b','c','col3']
 }
+coordinator = None
+participants = {}
+available_sites = [2,3,4]
 joinSelectivities = {}
 relationNumEntries = {}
 globalTunnels = {}

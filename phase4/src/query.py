@@ -80,6 +80,8 @@ class Query:
         '''
         config.logger.log("Query::parseUpdateQuery")
 
+        self.updateQueryInput = copy.deepcopy(query)
+
         if query[0][1] not in config.relationColumnMap:
             config.errorPrint("Unknown Relation Specified")
         self.updateRelation = query[0][1]
@@ -100,7 +102,10 @@ class Query:
             if curattr not in config.relationColumnMap[self.updateRelation]:
                 config.errorPrint("Unknown attribute specified")
             self.updateAttributes['attribute'].append(curattr)
-            self.updateAttributes['value'].append(curval)
+            if curval.isnumeric():
+                self.updateAttributes['value'].append(int(curval))
+            else:
+                self.updateAttributes['value'].append(curval)
             i += 1
         
         if i != len(query):
@@ -164,7 +169,7 @@ class Query:
                 if remaining.isnumeric():
                     value = int(remaining)
                 else:
-                    value = remaining[1:-1]
+                    value = remaining
                     # value = remaining
                 # self.updateSelectConditions[-1]['relation'].append(rel)
                 self.updateSelectConditions[-1]['attribute'].append(attr)

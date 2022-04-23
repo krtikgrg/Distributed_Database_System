@@ -1,0 +1,4 @@
+ready
+commit
+end_of_transaction
+

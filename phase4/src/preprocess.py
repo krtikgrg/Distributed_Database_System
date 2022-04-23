@@ -9,6 +9,8 @@ import time
 import paramiko
 import os
 
+from trace import Logger
+
 def createSSHTunnels():
     '''
     Function to create ssh tunnels as global variables for each of the sites
@@ -236,6 +238,17 @@ def computeTransferCoefficients():
         summ /= len(config.latencies[x])
         config.transferCoefficients[x] = summ
 
+def updatePreparation():
+    '''
+    function to create loggers for coordinator and participant files
+    '''
+    config.logger.log("preprocess::updatePreparation")
+
+    config.coordinator = Logger("./coordinator_logs.txt")
+    config.participants = {}
+    for i in config.available_sites:
+        config.participants[i] = Logger("./participant_"+str(i)+".txt")
+
 def deleteTempFilesTables():
     '''
     Function to delete the temporary files and tables which were created along the execution of the command
@@ -259,4 +272,8 @@ def deleteTempFilesTables():
             cur.execute(sqlQuery)
             config.globalConnections[siteno].commit()
     
+    for i in config.available_sites:
+        # os.remove("participant_"+str(i)+".txt") ## UNCOMMENT
+        tempo = 1
+
     config.tempTables = {}
