@@ -1,8 +1,4 @@
 ready
-commit
-end_of_transaction
-
-ready
-commit
+abort
 end_of_transaction
 

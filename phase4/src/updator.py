@@ -252,8 +252,12 @@ class Updator:
         for site in sites_involved:
             abort = 0
             abort = self.checkSite(site,sites_to_frags)
+            # if site == 3:
+            #     abort = 1
             if abort:
                 config.participants[site].log("abort")
+                config.participants[site].log("end_of_transaction")
+                config.participants[site].log("")
                 message_site[site] = "Vote-abort"
             else:
                 config.participants[site].log("ready")

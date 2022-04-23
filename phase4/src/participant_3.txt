@@ -1,8 +1,1 @@
-ready
-commit
-end_of_transaction
-
-ready
-commit
-end_of_transaction
-
+abort
